@@ -10,10 +10,11 @@ SRC = Util/src
 
 HTTPSERVER = HttpServer.cpp
 LOGGER = Logger.cpp
+REQUESTHANDLER = RequestHandler.cpp
 
 all: build buildTest
 
-util.o = $(SRC)/$(HTTPSERVER) $(SRC)/$(LOGGER)
+util.o = $(SRC)/$(HTTPSERVER) $(SRC)/$(LOGGER) $(SRC)/$(REQUESTHANDLER)
 
 build : $(source)
 	$(GXX) -o $(APPDIR)/$(APP) $(util.o) -l$(SOCKET) $(source) 
