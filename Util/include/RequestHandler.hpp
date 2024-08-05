@@ -18,7 +18,7 @@ public:
     RequestHandler(SOCKET client_socket);
 
 private:
-    void handleReqRes();
+    int handleReqRes();
     int requestParserHeader();
 };
 

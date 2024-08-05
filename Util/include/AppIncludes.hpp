@@ -2,15 +2,14 @@
 #define APPINCLUDES_HPP
 
 #include <iostream>
-#include <winsock2.h>
-#include <string>
-#include <algorithm>
-#include <ctime>
-#include <mswsock.h>
 #include <fstream>
-#include <thread>
+#include <winsock2.h>
+#include <mswsock.h>
 #include <string>
 #include <sstream>
+#include <algorithm>
+#include <ctime>
+#include <thread>
 #include <unordered_map>
 
 #define PORT 23000

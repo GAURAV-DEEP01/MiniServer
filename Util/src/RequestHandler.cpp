@@ -6,52 +6,67 @@ RequestHandler::RequestHandler(SOCKET client_socket_fh) : requestHeadersMap(), c
     handleReqRes();
 }
 
-void RequestHandler::handleReqRes()
+int RequestHandler::handleReqRes()
 {
     bool isReadingHeader = true;
     std::stringstream *currentRequestStream = &requestHeaderStream;
-    char requestBuffer[100];
+    char readBuffer[100];
+    size_t contentLength = INFINITE;
     while (1)
     {
-        memset(requestBuffer, 0, sizeof(requestBuffer));
+        memset(readBuffer, 0, sizeof(readBuffer));
         size_t bytesRead;
-        if ((bytesRead = recv(client_socket_fh, requestBuffer, sizeof(requestBuffer) - 1, 0)) == 0)
+        if ((bytesRead = recv(client_socket_fh, readBuffer, sizeof(readBuffer) - 1, 0)) == 0)
         {
             Logger::logs("connection closed");
-            return;
+            return 0;
         }
-        char *headerEndChar = strstr(requestBuffer, "\r\n\r\n");
+        char *headerEndChar = strstr(readBuffer, "\r\n\r\n");
 
-        if (headerEndChar != nullptr && isReadingHeader)
+        if (isReadingHeader && headerEndChar != nullptr)
         {
             isReadingHeader = false;
             *headerEndChar = '\0';
-            *currentRequestStream << requestBuffer;
+            *currentRequestStream << readBuffer;
             currentRequestStream = &requestBodyStream;
 
-            // parsing to get content-length it req has it
-            this->requestParserHeader();
             char *reqBodyStartChar = headerEndChar + 4;
             *currentRequestStream << reqBodyStartChar;
+            if (contentLength == 0)
+                break;
+            else
+            {
+                contentLength = this->requestParserHeader();
+                int diff = (headerEndChar - readBuffer);
+                contentLength -= bytesRead - (diff + 4);
+                if (contentLength == 0)
+                    break;
+            }
         }
         else
         {
-            *currentRequestStream << requestBuffer;
+            *currentRequestStream << readBuffer;
+            if (!isReadingHeader)
+                contentLength -= bytesRead;
+            if (contentLength <= 0)
+                break;
         }
     }
-
     // damn parsing
+    // request response handle will be done here...
+
     const char response[300] = "HTTP/1.1 200 OK\r\nDate: Fri, 02 Aug 2024 10:00:00 GMT\r\nServer: GDHTTPServer/1.0\r\nContent-Length: 11\r\nContent-Type: text/html; charset=utf-8\r\nConnection: close\r\n\r\n<h1>hi</h1>\r\n";
 
     int bytesSent = send(client_socket_fh, response, 300, 0);
     if (bytesSent == SOCKET_ERROR)
     {
         Logger::err("Send failed: " + std::string(strerror(WSAGetLastError())));
-        return;
+        return -1;
     }
     closesocket(client_socket_fh);
 
     Logger::logs("Send complete");
+    return 0;
 }
 
 int RequestHandler::requestParserHeader()
@@ -59,7 +74,16 @@ int RequestHandler::requestParserHeader()
     std::string key;
     std::string value;
 
-    Logger::info(requestHeaderStream.str());
+    // request line parsing
+    std::getline(requestHeaderStream, value, ' ');
+    requestHeadersMap["Method"] = value;
+    std::getline(requestHeaderStream, value, ' ');
+    requestHeadersMap["Url"] = value;
+    std::getline(requestHeaderStream, value);
+    requestHeadersMap["version"] = value;
+    INFO(requestHeaderStream.str());
+
+    // header field parsing
     while (std::getline(requestHeaderStream, key, ':'))
     {
         requestHeaderStream.ignore(1);
@@ -67,12 +91,16 @@ int RequestHandler::requestParserHeader()
         requestHeadersMap[key] = value;
     }
     if (!requestHeaderStream.eof())
-        Logger::status("couldn't parse header");
-
-    auto it = requestHeadersMap.find("Content-length");
-    if (it != requestHeadersMap.end())
     {
-        return std::stoi(it->second);
+        Logger::status("Couldn't parse header");
+        return -1;
     }
+    auto bodySize = requestHeadersMap.find("Content-Length");
+    if (bodySize != requestHeadersMap.end())
+    {
+        return std::stoi(bodySize->second);
+    }
+    INFO(requestHeaderStream.str());
+    INFO(requestBodyStream.str());
     return 0;
 }
