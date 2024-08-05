@@ -17,8 +17,8 @@ public:
     // initializing server
     HttpServer();
     HttpServer(short Port);
-
-    int serve();
+    void init();
+    virtual int service();
 
 private:
     int initTCPconnection();

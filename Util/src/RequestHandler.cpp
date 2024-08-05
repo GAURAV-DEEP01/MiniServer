@@ -1,7 +1,8 @@
 #include "../include/RequestHandler.hpp"
 #include "../include/Logger.hpp"
 
-RequestHandler::RequestHandler(SOCKET client_socket_fh) : requestHeadersMap(), client_socket_fh(client_socket_fh)
+RequestHandler::RequestHandler(SOCKET client_socket_fh, const std::function<int()> &service)
+    : requestHeadersMap(), client_socket_fh(client_socket_fh), service(service)
 {
     handleReqRes();
 }
@@ -53,8 +54,9 @@ int RequestHandler::handleReqRes()
         }
     }
     INFO(requestBodyStream.str());
-    // damn parsing
+
     // request response handle will be done here...
+    service();
 
     const char response[300] = "HTTP/1.1 200 OK\r\nDate: Fri, 02 Aug 2024 10:00:00 GMT\r\nServer: GDHTTPServer/1.0\r\nContent-Length: 11\r\nContent-Type: text/html; charset=utf-8\r\nConnection: close\r\n\r\n<h1>hi</h1>\r\n";
 

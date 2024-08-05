@@ -3,5 +3,10 @@
 
 #include "AppIncludes.hpp"
 
+class Response
+{
+private:
+    // in progress...
+};
 
 #endif

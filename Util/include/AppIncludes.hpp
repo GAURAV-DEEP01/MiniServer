@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <ctime>
 #include <thread>
+#include <functional>
 #include <unordered_map>
 
 #define PORT 23000

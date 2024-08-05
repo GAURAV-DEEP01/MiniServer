@@ -8,14 +8,15 @@ private:
     SOCKET client_socket_fh;
 
     std::stringstream requestHeaderStream;
-
     std::stringstream requestBodyStream;
-
-    std::stringstream responseStream;
     std::unordered_map<std::string, std::string> requestHeadersMap;
 
+    std::stringstream responseStream;
+
+    const std::function<int()> &service;
+
 public:
-    RequestHandler(SOCKET client_socket);
+    RequestHandler(SOCKET client_socket, const std::function<int()> &service);
 
 private:
     int handleReqRes();

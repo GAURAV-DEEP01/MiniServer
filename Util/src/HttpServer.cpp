@@ -2,15 +2,11 @@
 #include "../include/HttpServer.hpp"
 #include "../include/RequestHandler.hpp"
 
-HttpServer::HttpServer() : port(PORT)
-{
-    if (this->initTCPconnection() < 0)
-        Logger::err("Couldn't Initiate TCP connecton");
-    else
-        Logger::status("TCP connection made");
-}
+HttpServer::HttpServer() : port(PORT) {}
 
-HttpServer::HttpServer(short port) : port(port)
+HttpServer::HttpServer(short port) : port(port) {}
+
+void HttpServer::init()
 {
     if (this->initTCPconnection() < 0)
         Logger::err("Couldn't Initiate TCP connecton");
@@ -96,8 +92,14 @@ int HttpServer::requestAcceptor()
 
 int HttpServer::reqInstantiator(SOCKET client_socket_fh)
 {
-    RequestHandler *client = new RequestHandler(client_socket_fh);
+    RequestHandler *client = new RequestHandler(client_socket_fh, std::bind(&HttpServer::service, this));
 
     delete client;
+    return 0;
+}
+
+int HttpServer::service()
+{
+    // i'll implement this later...
     return 0;
 }
