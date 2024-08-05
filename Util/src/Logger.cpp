@@ -18,9 +18,10 @@ namespace Logger
 
     void info(std::string infoMsg)
     {
-        std::cout << "\nINFO: ---------------\n"
-                  << infoMsg << "\n"
-                  << "---------------------" << std::endl;
+        std::cout << "\n\nINFO: ---------------\n\n"
+                  << infoMsg << "\n\n"
+                  << "---------------------\n"
+                  << std::endl;
     }
 
     void logs(std::string log)
