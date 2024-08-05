@@ -52,6 +52,7 @@ int RequestHandler::handleReqRes()
                 break;
         }
     }
+    INFO(requestBodyStream.str());
     // damn parsing
     // request response handle will be done here...
 
@@ -81,7 +82,6 @@ int RequestHandler::requestParserHeader()
     requestHeadersMap["Url"] = value;
     std::getline(requestHeaderStream, value);
     requestHeadersMap["version"] = value;
-    INFO(requestHeaderStream.str());
 
     // header field parsing
     while (std::getline(requestHeaderStream, key, ':'))
@@ -95,12 +95,11 @@ int RequestHandler::requestParserHeader()
         Logger::status("Couldn't parse header");
         return -1;
     }
+    INFO(requestHeaderStream.str());
     auto bodySize = requestHeadersMap.find("Content-Length");
     if (bodySize != requestHeadersMap.end())
     {
         return std::stoi(bodySize->second);
     }
-    INFO(requestHeaderStream.str());
-    INFO(requestBodyStream.str());
     return 0;
 }

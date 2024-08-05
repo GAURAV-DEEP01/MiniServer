@@ -5,7 +5,7 @@
 
 class HttpServer
 {
-private:
+protected:
     short port;
     WORD WSA_versionReq;
     WSADATA wsaData;
@@ -17,6 +17,8 @@ public:
     // initializing server
     HttpServer();
     HttpServer(short Port);
+
+    int serve();
 
 private:
     int initTCPconnection();

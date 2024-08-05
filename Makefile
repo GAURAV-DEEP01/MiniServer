@@ -20,5 +20,5 @@ build : $(source)
 	$(GXX) -o $(APPDIR)/$(APP) $(util.o) -l$(SOCKET) $(source) 
 
 buildTest : $(source)
-	$(GXX) -DENABLE_INFO -o $(APPDIR)/$(TESTAPP) $(util.o) -l$(SOCKET) $(source)  	 	
+	$(GXX) -DENABLE_LOGGER_INFO -o $(APPDIR)/$(TESTAPP) $(util.o) -l$(SOCKET) $(source)  	 	
 

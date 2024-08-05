@@ -87,8 +87,8 @@ int HttpServer::requestAcceptor()
 
             Logger::logs("User connected with IP: " + ipString + " and PORT: " + std::to_string(this->server_addr.sin_port));
 
-            std::thread reqHandle(HttpServer::reqInstantiator, this, client_socket_fh);
-            reqHandle.detach();
+            std::thread reqHandleWorker(HttpServer::reqInstantiator, this, client_socket_fh);
+            reqHandleWorker.detach();
         }
     }
     return 0;
