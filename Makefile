@@ -11,10 +11,12 @@ SRC = Util/src
 HTTPSERVER = HttpServer.cpp
 LOGGER = Logger.cpp
 REQUESTHANDLER = RequestHandler.cpp
+HTTPREQUEST = HttpRequest.cpp
+HTTPRESPONSE = HttpResponse.cpp
 
 all: build buildTest
 
-util.o = $(SRC)/$(HTTPSERVER) $(SRC)/$(LOGGER) $(SRC)/$(REQUESTHANDLER)
+util.o = $(SRC)/$(HTTPSERVER) $(SRC)/$(LOGGER) $(SRC)/$(REQUESTHANDLER) $(SRC)/$(HTTPREQUEST) $(SRC)/$(HTTPRESPONSE)
 
 build : $(source)
 	$(GXX) -o $(APPDIR)/$(APP) $(util.o) -l$(SOCKET) $(source) 

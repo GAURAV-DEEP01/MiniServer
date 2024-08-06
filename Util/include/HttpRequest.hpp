@@ -7,6 +7,8 @@ class Request
 {
 private:
     // in progress...
+public:
+    void sayHi();
 };
 
 #endif

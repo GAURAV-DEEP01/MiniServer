@@ -6,7 +6,15 @@
 class Response
 {
 private:
+    // std::unordered_map<std::string, std::string> headers;
     // in progress...
+public:
+    // int setAttribute(std::string, std::string);
+    // int writeToBody(std::string);
 };
 
+/*
+
+
+*/
 #endif

@@ -1,6 +1,8 @@
 #ifndef REQUESTHANDLER_HPP
 #define REQUESTHANDLER_HPP
 #include "AppIncludes.hpp"
+#include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
 class RequestHandler
 {
 private:
@@ -13,23 +15,26 @@ private:
 
     std::stringstream responseStream;
 
-    const std::function<int()> &service;
+    Request req;
+    Response res;
+
+    const std::function<int(Request &req, Response &res)> &service;
 
 public:
     /*
         initializes the map, client_socket_fh and service()
         invokes the handleReqRes function
     */
-    RequestHandler(SOCKET client_socket, const std::function<int()> &service);
+    RequestHandler(SOCKET client_socket, const std::function<int(Request &req, Response &res)> &service);
 
 private:
     /*
         recieves request data and responds
         invokes requestParserHeader() parses the header
         invokes service function passed from HttpServer
-        
+
         implementing the service funciton in progress...
-        implementing the response in progress... 
+        implementing the response in progress...
     */
     int handleReqRes();
 

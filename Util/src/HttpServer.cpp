@@ -1,6 +1,8 @@
 #include "../include/Logger.hpp"
 #include "../include/HttpServer.hpp"
 #include "../include/RequestHandler.hpp"
+#include "../include/HttpRequest.hpp"
+#include "../include/HttpResponse.hpp"
 
 HttpServer::HttpServer() : port(PORT) {}
 
@@ -92,14 +94,24 @@ int HttpServer::requestAcceptor()
 
 int HttpServer::reqInstantiator(SOCKET client_socket_fh)
 {
-    RequestHandler *client = new RequestHandler(client_socket_fh, std::bind(&HttpServer::service, this));
+    RequestHandler *client = new RequestHandler(client_socket_fh, std::bind(&HttpServer::service, this, std::placeholders::_1, std::placeholders::_2));
 
     delete client;
     return 0;
 }
 
-int HttpServer::service()
+int HttpServer::service(Request &req, Response &res)
 {
     // i'll implement this later...
     return 0;
 }
+
+void HttpServer::serveGET(Request &req, Response &res) {}
+
+void HttpServer::servePOST(Request &req, Response &res) {}
+
+void HttpServer::servePUT(Request &req, Response &res) {}
+
+void HttpServer::servePATCH(Request &req, Response &res) {}
+
+void HttpServer::serveDELETE(Request &req, Response &res) {}

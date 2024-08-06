@@ -2,6 +2,8 @@
 #define HTTP_SERVER_H
 
 #include "AppIncludes.hpp"
+#include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
 
 class HttpServer
 {
@@ -23,7 +25,14 @@ public:
     // calls the initTCPconnection method
     void init();
 
-    virtual int service();
+    virtual int service(Request &req, Response &res);
+
+    // self discriptive HTTP methods
+    virtual void serveGET(Request &req, Response &res);
+    virtual void servePOST(Request &req, Response &res);
+    virtual void servePUT(Request &req, Response &res);
+    virtual void servePATCH(Request &req, Response &res);
+    virtual void serveDELETE(Request &req, Response &res);
 
 private:
     /*
