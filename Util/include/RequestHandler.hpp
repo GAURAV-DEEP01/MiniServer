@@ -27,11 +27,15 @@ private:
         recieves request data and responds
         invokes requestParserHeader() parses the header
         invokes service function passed from HttpServer
+        
+        implementing the service funciton in progress...
+        implementing the response in progress... 
     */
     int handleReqRes();
 
     /*
-        Parses the request header and returns the 'Content-Length' from the header
+        Parses the request header and is stored in the reqmap
+        returns the 'Content-Length' from the header-field
     */
     int requestParserHeader();
 };
