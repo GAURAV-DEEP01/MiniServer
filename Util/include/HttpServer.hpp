@@ -22,7 +22,10 @@ public:
     // initializing server with userdefined port
     HttpServer(short Port);
 
-    // calls the initTCPconnection method
+    /*
+        calls the initTCPconnection method
+        Invoke this method after object instantiation to start the server listening to port
+    */
     void init();
 
     virtual int service(Request &req, Response &res);

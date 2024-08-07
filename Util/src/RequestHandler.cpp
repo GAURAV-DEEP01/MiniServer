@@ -1,8 +1,13 @@
 #include "../include/RequestHandler.hpp"
 #include "../include/Logger.hpp"
 
-RequestHandler::RequestHandler(SOCKET client_socket_fh, const std::function<int(Request &req, Response &res)> &service)
-    : requestHeadersMap(), client_socket_fh(client_socket_fh), service(service)
+RequestHandler::RequestHandler(
+    SOCKET client_socket_fh,
+    const std::function<int(Request &req, Response &res)> &service)
+    : requestHeadersMap(),
+      client_socket_fh(client_socket_fh),
+      service(service),
+      res(responseStream)
 {
     handleReqRes();
 }
@@ -19,7 +24,7 @@ int RequestHandler::handleReqRes()
         size_t bytesRead;
         if ((bytesRead = recv(client_socket_fh, readBuffer, sizeof(readBuffer) - 1, 0)) == 0)
         {
-            Logger::logs("connection closed");
+            Logger::logs("Connection closed");
             return 0;
         }
         char *headerEndChar = strstr(readBuffer, "\r\n\r\n");
@@ -54,20 +59,24 @@ int RequestHandler::handleReqRes()
         }
     }
     INFO(requestBodyStream.str());
-
+    Request req(requestHeadersMap, requestBodyStream);
     // request response handle will be done here...
     service(req, res);
 
-    const char response[300] = "HTTP/1.1 200 OK\r\nDate: Fri, 02 Aug 2024 10:00:00 GMT\r\nServer: GDHTTPServer/1.0\r\nContent-Length: 11\r\nContent-Type: text/html; charset=utf-8\r\nConnection: close\r\n\r\n<h1>hi</h1>\r\n";
+    res.startWriter();
 
-    int bytesSent = send(client_socket_fh, response, 300, 0);
-    if (bytesSent == SOCKET_ERROR)
+    char writeBuffer[300];
+    while (responseStream.read(writeBuffer, sizeof(writeBuffer) - 1) || responseStream.gcount() > 0)
     {
-        Logger::err("Send failed: " + std::string(strerror(WSAGetLastError())));
-        return -1;
+        writeBuffer[responseStream.gcount()] = '\0';
+        int bytesSent = send(client_socket_fh, writeBuffer, sizeof(writeBuffer), 0);
+        if (bytesSent == SOCKET_ERROR)
+        {
+            Logger::err("Send failed: " + std::string(strerror(WSAGetLastError())));
+            return -1;
+        }
     }
     closesocket(client_socket_fh);
-
     Logger::logs("Send complete");
     return 0;
 }
@@ -78,11 +87,13 @@ int RequestHandler::requestParserHeader()
     std::string value;
 
     // request line parsing
-    std::getline(requestHeaderStream, value, ' ');
+    requestHeaderStream >> value;
     requestHeadersMap["Method"] = value;
-    std::getline(requestHeaderStream, value, ' ');
+
+    requestHeaderStream >> value;
     requestHeadersMap["Url"] = value;
-    std::getline(requestHeaderStream, value);
+
+    requestHeaderStream >> value;
     requestHeadersMap["version"] = value;
 
     // header field parsing

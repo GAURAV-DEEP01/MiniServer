@@ -15,7 +15,6 @@ private:
 
     std::stringstream responseStream;
 
-    Request req;
     Response res;
 
     const std::function<int(Request &req, Response &res)> &service;

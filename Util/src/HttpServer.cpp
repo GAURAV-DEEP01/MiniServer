@@ -24,7 +24,7 @@ int HttpServer::initTCPconnection()
         Logger::err("WSA Startup failed");
         return -1;
     }
-    Logger::status("Wsa StartUp successfull");
+    Logger::status("Wsa StartUp successful");
 
     this->server_socket_fh;
     if ((this->server_socket_fh = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -43,7 +43,7 @@ int HttpServer::initTCPconnection()
         Logger::err("Binding failed", this->server_socket_fh);
         return -1;
     }
-    Logger::status("Binding successfull");
+    Logger::status("Binding successful");
 
     if (listen(this->server_socket_fh, 10) < 0)
     {

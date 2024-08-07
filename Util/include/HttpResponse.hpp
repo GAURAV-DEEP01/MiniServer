@@ -6,11 +6,28 @@
 class Response
 {
 private:
-    // std::unordered_map<std::string, std::string> headers;
+    // status line
+    std::string status = "200";
+    std::string version = "HTTP/1.1";
+    std::string reasonPhrase = "OK";
+    std::size_t contentLength = 0;
+
+    // headers
+    std::unordered_map<std::string, std::string> headers;
+    std::stringstream responseBodyStream;
     // in progress...
+    // whole response
+    bool isWriteComplete = false;
+    std::stringstream &responseStream;
+
 public:
-    // int setAttribute(std::string, std::string);
-    // int writeToBody(std::string);
+    Response(std::stringstream &responseStream);
+    void setStatus(int statusCode);
+    void setContentType(std::string contentType);
+    void setReasonPhrase(std::string reasonPhrase);
+    void setAttribute(std::string key, std::string value);
+    void writeToBody(std::string contentStrng);
+    void startWriter();
 };
 
 /*

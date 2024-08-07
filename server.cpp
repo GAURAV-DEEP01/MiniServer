@@ -11,7 +11,8 @@ public:
 
     int service(Request &req, Response &res) override
     {
-        Logger::info("Service Ready");
+        res.setContentType("text/html");
+        res.writeToBody("<h1>Server Running...</h1>");
         return 0;
     }
 };
