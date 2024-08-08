@@ -9,7 +9,12 @@ void Response::setContentType(std::string contentType) { headers["Content-Type"]
 
 void Response::setReasonPhrase(std::string reasonPhrase) { this->reasonPhrase = reasonPhrase; }
 
-void Response::setAttribute(std::string key, std::string value) { headers[key] = value; }
+void Response::setAttribute(std::string key, std::string value)
+{
+    if (key == "Content-Type" || key == "Date" || key == "Server")
+        return;
+    headers[key] = value;
+}
 
 void Response::writeToBody(std::string contentString)
 {
@@ -23,15 +28,26 @@ void Response::startWriter()
     if (isWriteComplete)
         return;
     responseStream << version << " " << status << " " << reasonPhrase << "\r\n";
+    headers["Server"] = "HTTPServer/1.0";
+    headers["Date"] = getGMT();
+
     std::unordered_map<std::string, std::string>::iterator headerKeyValue;
-    responseStream << "Server: GDHTTPServer/1.0\r\n";
     for (headerKeyValue = headers.begin(); headerKeyValue != headers.end(); headerKeyValue++)
         responseStream << headerKeyValue->first << ": " << headerKeyValue->second << "\r\n";
-
-    responseStream << "Date: Fri, 02 Aug 2024 10:00:00 GMTr\n";
-
     responseStream << "\r\n";
+
     responseStream << responseBodyStream.str();
     Logger::info(responseStream.str());
     isWriteComplete = true;
+}
+
+std::string Response::getGMT()
+{
+    std::time_t now = std::time(nullptr);
+    std::tm *gmtTime = std::gmtime(&now);
+
+    std::stringstream gmtimeStream;
+    gmtimeStream << std::put_time(gmtTime, "%a, %d %b %Y %H:%M:%S GMT");
+
+    return gmtimeStream.str();
 }

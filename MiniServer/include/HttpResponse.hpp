@@ -6,19 +6,21 @@
 class Response
 {
 private:
-    // status line
+    // status line default values
     std::string status = "200";
     std::string version = "HTTP/1.1";
     std::string reasonPhrase = "OK";
-    std::size_t contentLength = 0;
 
     // headers
     std::unordered_map<std::string, std::string> headers;
     std::stringstream responseBodyStream;
-    // in progress...
+    std::size_t contentLength = 0;
+
     // whole response
     bool isWriteComplete = false;
     std::stringstream &responseStream;
+
+    std::string getGMT();
 
 public:
     Response(std::stringstream &responseStream);
@@ -30,8 +32,4 @@ public:
     void startWriter();
 };
 
-/*
-
-
-*/
 #endif

@@ -42,7 +42,8 @@ int RequestHandler::handleReqRes()
                 break;
             else
             {
-                contentLength = this->requestParserHeader();
+                if ((contentLength = this->requestParserHeader()) < 0)
+                    return 0;
                 int diff = (headerEndChar - readBuffer);
                 contentLength -= bytesRead - (diff + 4);
                 if (contentLength == 0)
@@ -60,8 +61,13 @@ int RequestHandler::handleReqRes()
     }
     INFO(requestBodyStream.str());
     Request req(requestHeadersMap, requestBodyStream);
+
     // request response handle will be done here...
-    service(req, res);
+    if (service(req, res) < 0)
+    {
+        closesocket(client_socket_fh);
+        return 0;
+    }
 
     res.startWriter();
 
@@ -72,7 +78,7 @@ int RequestHandler::handleReqRes()
         int bytesSent = send(client_socket_fh, writeBuffer, sizeof(writeBuffer), 0);
         if (bytesSent == SOCKET_ERROR)
         {
-            Logger::err("Send failed: " + std::string(strerror(WSAGetLastError())));
+            Logger::err("Send failed: " + std::string(strerror(WSAGetLastError())), client_socket_fh);
             return -1;
         }
     }

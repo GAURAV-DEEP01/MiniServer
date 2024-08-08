@@ -8,11 +8,10 @@ class Request
 private:
     std::unordered_map<std::string, std::string> &headerFields;
     std::stringstream &requestBodyStream;
-    std::size_t contentLength = 0;
-    // in progress...
 
 public:
-    Request(std::unordered_map<std::string, std::string> &headerFields, std::stringstream &requestBodyStream);
+    Request(std::unordered_map<std::string, std::string> &headerFields,
+            std::stringstream &requestBodyStream);
 
     std::string getMethod();
     std::string getUrl();

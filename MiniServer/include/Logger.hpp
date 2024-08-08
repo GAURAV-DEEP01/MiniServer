@@ -11,19 +11,28 @@
 
 namespace Logger
 {
-    // Prints error msg with WSA Last error error status code
+    /*
+        Prints error msg with WSA Last error error status code
+        Error: msg
+        Error code: WSA LAST ERROR CODE
+    */
     void err(std::string errMsg, SOCKET socket_fh = INVALID_SOCKET);
 
-    // Prints status msg...
+    /*
+        Prints status
+        msg...
+    */
     void status(std::string statusMsg);
 
-    // Prints infot msg
-    // INFO ------------------------
-    // msg
-    // -----------------------------
+    /*
+        Prints info msg
+        INFO ------------------------
+        msg
+        -----------------------------
+    */
     void info(std::string infoMsg);
 
-    // connection logs { msg : time}
+    // connection logs { msg : time }
     void logs(std::string log);
 }
 

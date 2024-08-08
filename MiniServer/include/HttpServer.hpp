@@ -25,17 +25,21 @@ public:
     /*
         calls the initTCPconnection method
         Invoke this method after object instantiation to start the server listening to port
+        Note: this function will pause the caller thread
     */
     void init();
 
     virtual int service(Request &req, Response &res);
 
     // self discriptive HTTP methods
-    virtual void serveGET(Request &req, Response &res);
-    virtual void servePOST(Request &req, Response &res);
-    virtual void servePUT(Request &req, Response &res);
-    virtual void servePATCH(Request &req, Response &res);
-    virtual void serveDELETE(Request &req, Response &res);
+    virtual int serveGET(Request &req, Response &res);
+    virtual int servePOST(Request &req, Response &res);
+    virtual int servePUT(Request &req, Response &res);
+    virtual int servePATCH(Request &req, Response &res);
+    virtual int serveDELETE(Request &req, Response &res);
+    virtual int serveSPECIFIC(Request &req, Response &res);
+
+    void defaultService(Request &req, Response &res);
 
 private:
     /*

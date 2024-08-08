@@ -7,14 +7,10 @@ Request::Request(
     : headerFields(headerFields), requestBodyStream(requestBodyStream) {}
 
 // to do... at this point everything is a to do
-std::string Request::getMethod()
-{
-    return "getMethod";
-}
-std::string Request::getUrl()
-{
-    return "getUrl";
-}
+std::string Request::getMethod() { return headerFields["Method"]; }
+
+std::string Request::getUrl() { return headerFields["Url"]; }
+
 std::stringstream Request::getBodyStream()
 {
     std::stringstream s("getBodyStream");

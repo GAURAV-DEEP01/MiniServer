@@ -7,8 +7,10 @@
 #include <mswsock.h>
 #include <string>
 #include <sstream>
+#include <cstdio>
 #include <algorithm>
 #include <ctime>
+#include <iomanip>
 #include <thread>
 #include <functional>
 #include <unordered_map>
