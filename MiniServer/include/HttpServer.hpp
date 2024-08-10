@@ -18,7 +18,6 @@ protected:
 public:
     // initializing server with defauld port 23000
     HttpServer();
-
     // initializing server with userdefined port
     HttpServer(short Port);
 
@@ -37,8 +36,14 @@ public:
     virtual int servePUT(Request &req, Response &res);
     virtual int servePATCH(Request &req, Response &res);
     virtual int serveDELETE(Request &req, Response &res);
+
+    /*
+        this function is used for other additonsl methods except the default HTTP methods above
+        if you override this method use 'getMethod()' [In Request object] function to get the specific method sent by the client
+    */
     virtual int serveSPECIFIC(Request &req, Response &res);
 
+    // will implimente this in the next commit (might reconsider)
     void defaultService(Request &req, Response &res);
 
 private:
@@ -49,8 +54,8 @@ private:
     int initTCPconnection();
 
     /*
-        this is a threaded method constently accepting incomming requests from the client
-        for each reqest accepted this creates thread invoking the reqInstantiator with the client socket
+        this method runs in a separate thread, continuously accepting incoming requests from clients.
+        for each accepted request, it creates a new thread that invokes the 'reqInstantiator()' with the client socket.
     */
     int requestAcceptor();
 

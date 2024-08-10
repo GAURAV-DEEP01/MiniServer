@@ -6,27 +6,66 @@ RequestHandler::RequestHandler(
     const std::function<int(Request &req, Response &res)> &service)
     : requestHeadersMap(),
       client_socket_fh(client_socket_fh),
-      service(service),
-      res(responseStream)
+      service(service)
 {
     handleReqRes();
 }
 
 int RequestHandler::handleReqRes()
 {
+    while (maxRequest > handledRequests)
+    {
+        if (!startReciving())
+            return 0;
+
+        INFO(requestBodyStream.str());
+
+        // stack allocation for now while testing... i dont want things to break in this stage
+        Request req(requestHeadersMap, requestBodyStream);
+        Response res(responseStream);
+
+        // request response handle will be done here...
+        if (service(req, res) < 0)
+        {
+            closesocket(client_socket_fh);
+            return 0;
+        }
+
+        res.startWriter();
+
+        if (!startSending())
+            return 0;
+        if (!clearOneReqResCycle())
+            return 0;
+    }
+    closesocket(client_socket_fh);
+    return 0;
+}
+
+bool RequestHandler::isConnectionKeepAlive()
+{
+    auto connection = requestHeadersMap.find("Connection");
+    if ((connection != requestHeadersMap.end()) && connection->second == "keep-alive")
+        return true;
+    return false;
+}
+
+bool RequestHandler::startReciving()
+{
     bool isReadingHeader = true;
     std::stringstream *currentRequestStream = &requestHeaderStream;
     char readBuffer[100];
     size_t contentLength = INFINITE;
-    while (1)
+    while (true)
     {
         memset(readBuffer, 0, sizeof(readBuffer));
         size_t bytesRead;
         if ((bytesRead = recv(client_socket_fh, readBuffer, sizeof(readBuffer) - 1, 0)) == 0)
         {
             Logger::logs("Connection closed");
-            return 0;
+            return true;
         }
+        isHandlerActive = true;
         char *headerEndChar = strstr(readBuffer, "\r\n\r\n");
 
         if (isReadingHeader && headerEndChar != nullptr)
@@ -43,7 +82,7 @@ int RequestHandler::handleReqRes()
             else
             {
                 if ((contentLength = this->requestParserHeader()) < 0)
-                    return 0;
+                    return false;
                 int diff = (headerEndChar - readBuffer);
                 contentLength -= bytesRead - (diff + 4);
                 if (contentLength == 0)
@@ -59,18 +98,11 @@ int RequestHandler::handleReqRes()
                 break;
         }
     }
-    INFO(requestBodyStream.str());
-    Request req(requestHeadersMap, requestBodyStream);
+    return true;
+}
 
-    // request response handle will be done here...
-    if (service(req, res) < 0)
-    {
-        closesocket(client_socket_fh);
-        return 0;
-    }
-
-    res.startWriter();
-
+bool RequestHandler::startSending()
+{
     char writeBuffer[300];
     while (responseStream.read(writeBuffer, sizeof(writeBuffer) - 1) || responseStream.gcount() > 0)
     {
@@ -79,12 +111,11 @@ int RequestHandler::handleReqRes()
         if (bytesSent == SOCKET_ERROR)
         {
             Logger::err("Send failed: " + std::string(strerror(WSAGetLastError())), client_socket_fh);
-            return -1;
+            return false;
         }
     }
-    closesocket(client_socket_fh);
     Logger::logs("Send complete");
-    return 0;
+    return true;
 }
 
 int RequestHandler::requestParserHeader()
@@ -121,4 +152,17 @@ int RequestHandler::requestParserHeader()
         return std::stoi(bodySize->second);
     }
     return 0;
+}
+
+bool RequestHandler::clearOneReqResCycle()
+{
+    requestHeaderStream.clear();
+    requestHeadersMap.clear();
+    requestBodyStream.clear();
+    responseStream.clear();
+    if (!isConnectionKeepAlive())
+        return false;
+
+    handledRequests++;
+    return true;
 }

@@ -23,6 +23,7 @@ private:
     std::string getGMT();
 
 public:
+    // will add detailed comments lator...
     Response(std::stringstream &responseStream);
     void setStatus(int statusCode);
     void setContentType(std::string contentType);

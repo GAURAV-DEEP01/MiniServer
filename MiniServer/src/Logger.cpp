@@ -1,6 +1,7 @@
 #include "../include/Logger.hpp"
 
-std::mutex loggerAccess;
+static std::mutex loggerAccess;
+
 namespace Logger
 {
     void err(std::string errMsg, SOCKET socket_fh)
@@ -10,7 +11,6 @@ namespace Logger
         std::cerr << "Error code: " << WSAGetLastError() << std::endl;
         if (socket_fh != INVALID_SOCKET)
             closesocket(socket_fh);
-        WSACleanup();
         loggerAccess.unlock();
     }
 

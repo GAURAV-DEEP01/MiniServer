@@ -13,6 +13,7 @@ public:
     Request(std::unordered_map<std::string, std::string> &headerFields,
             std::stringstream &requestBodyStream);
 
+    // will add detailed comments lator... (or atleast hope so)
     std::string getMethod();
     std::string getUrl();
     std::stringstream getBodyStream();

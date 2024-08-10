@@ -6,7 +6,10 @@
 class RequestHandler
 {
 private:
-    int name, vers;
+    const int maxRequest = 50;
+    int handledRequests = 0;
+    bool isHandlerActive = false;
+
     SOCKET client_socket_fh;
 
     std::stringstream requestHeaderStream;
@@ -14,8 +17,6 @@ private:
     std::unordered_map<std::string, std::string> requestHeadersMap;
 
     std::stringstream responseStream;
-
-    Response res;
 
     const std::function<int(Request &req, Response &res)> &service;
 
@@ -31,9 +32,6 @@ private:
         recieves request data and responds
         invokes requestParserHeader() parses the header
         invokes service function passed from HttpServer
-
-        implementing the service funciton in progress...
-        implementing the response in progress...
     */
     int handleReqRes();
 
@@ -42,6 +40,19 @@ private:
         returns the 'Content-Length' from the header-field
     */
     int requestParserHeader();
+
+    // ill add detailed comments here later...
+
+    // Checks the header if connection is set to keep alive
+    bool isConnectionKeepAlive();
+
+    // recieveing funtion
+    bool startReciving();
+
+    bool startSending();
+
+    // clears all streams and header map
+    bool clearOneReqResCycle();
 };
 
 #endif

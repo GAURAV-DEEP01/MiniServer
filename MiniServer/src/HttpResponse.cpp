@@ -32,10 +32,11 @@ void Response::startWriter()
     headers["Date"] = getGMT();
 
     std::unordered_map<std::string, std::string>::iterator headerKeyValue;
+    responseStream << "Connection: keep-alive\r\nKeep-Alive: timeout=10, max=100\r\n";
     for (headerKeyValue = headers.begin(); headerKeyValue != headers.end(); headerKeyValue++)
-        responseStream << headerKeyValue->first << ": " << headerKeyValue->second << "\r\n";
+        responseStream
+            << headerKeyValue->first << ": " << headerKeyValue->second << "\r\n";
     responseStream << "\r\n";
-
     responseStream << responseBodyStream.str();
     Logger::info(responseStream.str());
     isWriteComplete = true;
