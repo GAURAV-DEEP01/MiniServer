@@ -17,7 +17,7 @@ public:
     std::string getMethod();
     std::string getUrl();
     std::stringstream getBodyStream();
-    std::string getAttribute(std::string key);
+    std::string getHeaderField(std::string key);
     std::string getContentType();
     std::string getHost();
 };

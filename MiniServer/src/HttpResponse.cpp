@@ -9,7 +9,7 @@ void Response::setContentType(std::string contentType) { headers["Content-Type"]
 
 void Response::setReasonPhrase(std::string reasonPhrase) { this->reasonPhrase = reasonPhrase; }
 
-void Response::setAttribute(std::string key, std::string value)
+void Response::setHeaderField(std::string key, std::string value)
 {
     if (key == "Content-Type" || key == "Date" || key == "Server")
         return;
@@ -34,11 +34,10 @@ void Response::startWriter()
     std::unordered_map<std::string, std::string>::iterator headerKeyValue;
     responseStream << "Connection: keep-alive\r\nKeep-Alive: timeout=10, max=100\r\n";
     for (headerKeyValue = headers.begin(); headerKeyValue != headers.end(); headerKeyValue++)
-        responseStream
-            << headerKeyValue->first << ": " << headerKeyValue->second << "\r\n";
+        responseStream << headerKeyValue->first << ": " << headerKeyValue->second << "\r\n";
     responseStream << "\r\n";
     responseStream << responseBodyStream.str();
-    Logger::info(responseStream.str());
+
     isWriteComplete = true;
 }
 

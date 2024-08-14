@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <fstream>
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #include <mswsock.h>
 #include <string>
 #include <sstream>
@@ -13,7 +14,7 @@
 #include <thread>
 #include <mutex>
 #include <functional>
-#include <algorithm> 
+#include <algorithm>
 #include <unordered_map>
 
 #define PORT 23000

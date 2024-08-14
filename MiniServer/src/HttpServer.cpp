@@ -89,7 +89,7 @@ int HttpServer::requestAcceptor()
 
                 Logger::logs("User connected with IP: " + ipString + " and PORT: " + std::to_string(this->server_addr.sin_port));
 
-                std::thread reqHandleWorker(HttpServer::reqInstantiator, this, client_socket_fh);
+                std::thread reqHandleWorker(HttpServer::reqInstantiator, this, client_socket_fh, server_addr);
                 reqHandleWorker.detach();
             }
         }
@@ -103,10 +103,11 @@ int HttpServer::requestAcceptor()
     return 0;
 }
 
-int HttpServer::reqInstantiator(SOCKET client_socket_fh)
+int HttpServer::reqInstantiator(SOCKET client_socket_fh, sockaddr_in server_addr)
 {
     RequestHandler *client = new RequestHandler(
         client_socket_fh,
+        server_addr,
         std::bind(&HttpServer::service,
                   this,
                   std::placeholders::_1,
@@ -122,6 +123,8 @@ int HttpServer::service(Request &req, Response &res)
 {
     std::string method = req.getMethod();
 
+    middleWare(req, res);
+
     int servicesStatus;
     if (method == "GET")
         servicesStatus = serveGET(req, res);
@@ -136,6 +139,11 @@ int HttpServer::service(Request &req, Response &res)
     else
         servicesStatus = serveSPECIFIC(req, res);
     return servicesStatus;
+}
+
+int HttpServer::middleWare(Request &req, Response &res)
+{
+    return 0;
 }
 
 // these methods will be overrided by the inheriting class, so kept blank

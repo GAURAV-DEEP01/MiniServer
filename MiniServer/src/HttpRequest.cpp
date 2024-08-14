@@ -16,9 +16,9 @@ std::stringstream Request::getBodyStream()
     std::stringstream s("getBodyStream");
     return s;
 }
-std::string Request::getAttribute(std::string)
+std::string Request::getHeaderField(std::string)
 {
-    return "getAttribute";
+    return "getHeaderFilds";
 }
 std::string Request::getContentType()
 {

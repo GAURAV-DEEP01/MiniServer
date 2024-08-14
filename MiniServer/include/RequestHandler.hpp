@@ -6,11 +6,14 @@
 class RequestHandler
 {
 private:
-    const int maxRequest = 50;
+    const int maxRequest = 5;
+    const int maxTimout = 10; // seconds
     int handledRequests = 0;
+
     bool isHandlerActive = false;
 
-    SOCKET client_socket_fh;
+    const SOCKET client_socket_fh;
+    const sockaddr_in server_addr;
 
     std::stringstream requestHeaderStream;
     std::stringstream requestBodyStream;
@@ -25,7 +28,11 @@ public:
         initializes the map, client_socket_fh and service()
         invokes the handleReqRes function
     */
-    RequestHandler(SOCKET client_socket, const std::function<int(Request &req, Response &res)> &service);
+    RequestHandler(SOCKET client_socket,
+                   sockaddr_in server_addr,
+                   const std::function<int(Request &req, Response &res)> &service);
+
+    ~RequestHandler();
 
 private:
     /*
@@ -46,7 +53,8 @@ private:
     // Checks the header if connection is set to keep alive
     bool isConnectionKeepAlive();
 
-    // recieveing funtion
+    void monitorClientInactivity();
+
     bool startReciving();
 
     bool startSending();

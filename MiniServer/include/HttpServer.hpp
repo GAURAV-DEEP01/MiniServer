@@ -22,13 +22,20 @@ public:
     HttpServer(short Port);
 
     /*
-        calls the initTCPconnection method
-        Invoke this method after object instantiation to start the server listening to port
+        invoke's the initTCPconnection method
+        Invoke's this method after object instantiation to start the server listening to port
         Note: this function will pause the caller thread
     */
     void init();
 
+    /*
+        invoke's the 'middleWare' method before the serve methods
+        invoke's the serve methods serveGET, servePOST, servePUT, servePATCH, serveDELETE or
+        serveSPECIFIC (for HTTP methods except the above mentioned) based on the clients request HTTP method
+    */
     virtual int service(Request &req, Response &res);
+
+    virtual int middleWare(Request &req, Response &res);
 
     // self discriptive HTTP methods
     virtual int serveGET(Request &req, Response &res);
@@ -38,7 +45,7 @@ public:
     virtual int serveDELETE(Request &req, Response &res);
 
     /*
-        this function is used for other additonsl methods except the default HTTP methods above
+        Used for other additonsl methods except the default HTTP methods above
         if you override this method use 'getMethod()' [In Request object] function to get the specific method sent by the client
     */
     virtual int serveSPECIFIC(Request &req, Response &res);
@@ -54,7 +61,7 @@ private:
     int initTCPconnection();
 
     /*
-        this method runs in a separate thread, continuously accepting incoming requests from clients.
+        this runs in a separate thread, continuously accepting incoming requests from clients.
         for each accepted request, it creates a new thread that invokes the 'reqInstantiator()' with the client socket.
     */
     int requestAcceptor();
@@ -63,7 +70,7 @@ private:
         creates 'RequestHandler' object with the client socket in
         the heap and clears the allcoated memory after request has been serviced
     */
-    int reqInstantiator(SOCKET client_socket_fh);
+    int reqInstantiator(SOCKET client_socket_fh, sockaddr_in server_addr);
 };
 
 #endif

@@ -1,20 +1,15 @@
-#include "AppIncludes.hpp"
-#include "Logger.hpp"
-#include "HttpServer.hpp"
-#include "HttpRequest.hpp"
-#include "HttpResponse.hpp"
+#include "miniserver.hpp"
 
 class MyServer : public HttpServer
 {
 public:
     MyServer() : HttpServer() {}
 
-    // int service(Request &req, Response &res)
-    // {
-    //     res.setContentType("text/html;charset=utf-8");
-    //     res.writeToBody("<h1>Testing...</h1>");
-    //     return 0;
-    // }
+    int middleWare(Request &req, Response &res) override
+    {
+        // middleware functions in order;
+        return 0;
+    }
 
     int servePOST(Request &req, Response &res) override
     {

@@ -28,7 +28,7 @@ public:
     void setStatus(int statusCode);
     void setContentType(std::string contentType);
     void setReasonPhrase(std::string reasonPhrase);
-    void setAttribute(std::string key, std::string value);
+    void setHeaderField(std::string key, std::string value);
     void writeToBody(std::string contentStrng);
     void startWriter();
 };
