@@ -6,8 +6,8 @@
 class RequestHandler
 {
 private:
-    const int maxRequest = 5;
-    const int maxTimout = 10; // seconds
+    const int maxRequest = 100;
+    const int maxTimout = 10000; // seconds
     int handledRequests = 0;
 
     std::atomic<bool> isHandlerActive;

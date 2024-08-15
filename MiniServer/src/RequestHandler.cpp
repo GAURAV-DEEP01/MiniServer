@@ -11,8 +11,7 @@ RequestHandler::RequestHandler(
       server_addr(server_addr),
       isHandlerActive(false)
 {
-    int timeout = 5000;
-    setsockopt(client_socket_fh, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof(timeout));
+    setsockopt(client_socket_fh, SOL_SOCKET, SO_RCVTIMEO, (const char *)&maxTimout, sizeof(maxTimout));
 
     size_t addressSize = sizeof(this->server_addr.sin_addr.S_un.S_addr);
     char bytes[addressSize];
@@ -40,7 +39,6 @@ RequestHandler::~RequestHandler()
 
 int RequestHandler::handleReqRes()
 {
-    // std::thread inactiveMonitor(RequestHandler::monitorClientInactivity, this);
     while (maxRequest > handledRequests++)
     {
         if (!startReciving())
@@ -66,7 +64,6 @@ int RequestHandler::handleReqRes()
         if (!clearOneReqResCycle())
             break;
     }
-    // inactiveMonitor.join();
     return 0;
 }
 
@@ -77,7 +74,7 @@ bool RequestHandler::isConnectionKeepAlive()
 
     if (connection != requestHeadersMap.end() && connection->second == "keep-alive")
         return true;
-    Logger::info(connectionKey + "=" + (connection != requestHeadersMap.end() ? connection->second : "not found"));
+
     return false;
 }
 
@@ -102,7 +99,6 @@ bool RequestHandler::startReciving()
                          std::to_string(this->server_addr.sin_port));
             return false;
         }
-        isHandlerActive.store(true);
         char *headerEndChar = strstr(readBuffer, "\r\n\r\n");
 
         if (isReadingHeader && headerEndChar != nullptr)
@@ -116,7 +112,7 @@ bool RequestHandler::startReciving()
             char *reqBodyStartChar = headerEndChar + 4;
             *currentRequestStream << reqBodyStartChar;
 
-            if ((contentLength = requestParserHeader()) == -1)
+            if ((contentLength = requestParserHeader()) == (size_t)-1)
                 return false;
 
             int diff = headerEndChar - readBuffer;
@@ -140,11 +136,10 @@ bool RequestHandler::startReciving()
 bool RequestHandler::startSending()
 {
     char writeBuffer[300];
-    while (responseStream.read(writeBuffer, sizeof(writeBuffer) - 1) ||
+    while (responseStream.read(writeBuffer, sizeof(writeBuffer)) ||
            responseStream.gcount() > 0)
     {
-        writeBuffer[responseStream.gcount()] = '\0';
-        int bytesSent = send(client_socket_fh, writeBuffer, sizeof(writeBuffer), 0);
+        int bytesSent = send(client_socket_fh, writeBuffer, responseStream.gcount(), 0);
         if (bytesSent == SOCKET_ERROR)
         {
             Logger::err("Send failed," +
@@ -212,18 +207,12 @@ bool RequestHandler::clearOneReqResCycle()
     if (!isConnectionKeepAlive())
         return false;
     requestHeaderStream.clear();
+    requestHeaderStream.str("");
     requestBodyStream.clear();
+    requestBodyStream.str("");
     responseStream.clear();
+    responseStream.str("");
     requestHeadersMap.clear();
-    isHandlerActive.store(true);
     handledRequests++;
     return true;
-}
-
-void RequestHandler::monitorClientInactivity()
-{
-    const int monitoringInterval = 5;
-    while (isHandlerActive.load())
-        std::this_thread::sleep_for(std::chrono::seconds(monitoringInterval));
-    shutdown(client_socket_fh, SD_BOTH);
 }

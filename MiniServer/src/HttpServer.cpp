@@ -4,12 +4,21 @@
 #include "../include/HttpRequest.hpp"
 #include "../include/HttpResponse.hpp"
 
+typedef enum SERVERCONST
+{
+    SERVER_ERROR = -1,
+    METHOD_NOT_FOUND = 1
+} SERVERCONST;
+
 HttpServer::HttpServer() : port(PORT) {}
 
-HttpServer::HttpServer(short port) : port(port) {}
-
-void HttpServer::init()
+void HttpServer::listen(short port)
 {
+    middleWare = [](Request &req, Response &res) -> int
+    {
+        return 0;
+    };
+    this->port = port;
     if (this->initTCPconnection() < 0)
         Logger::err("Couldn't Initiate TCP connecton");
     else
@@ -47,7 +56,7 @@ int HttpServer::initTCPconnection()
     }
     Logger::status("Binding successful");
 
-    if (listen(this->server_socket_fh, 50) < 0)
+    if (::listen(this->server_socket_fh, 50) < 0)
     {
         Logger::err("Listening failed", this->server_socket_fh);
         WSACleanup();
@@ -138,42 +147,57 @@ int HttpServer::service(Request &req, Response &res)
         servicesStatus = serveDELETE(req, res);
     else
         servicesStatus = serveSPECIFIC(req, res);
+
+    if (servicesStatus == METHOD_NOT_FOUND)
+        defaultService(req, res);
     return servicesStatus;
 }
 
-int HttpServer::middleWare(Request &req, Response &res)
+int HttpServer::route(
+    Request &req, Response &res,
+    std::unordered_map<std::string, std::function<int(Request &, Response &)>> &route)
 {
-    return 0;
+    auto foundMethod = route.find(req.getUrl());
+    if (foundMethod != route.end())
+        return foundMethod->second(req, res);
+    return METHOD_NOT_FOUND;
 }
 
-// these methods will be overrided by the inheriting class, so kept blank
-// might add something if required...
+// redesigned
 int HttpServer::serveGET(Request &req, Response &res)
 {
-    return 0;
+    return route(req, res, routeGet);
 }
-
 int HttpServer::servePOST(Request &req, Response &res)
 {
-    return 0;
+    return route(req, res, routePost);
 }
 
 int HttpServer::servePUT(Request &req, Response &res)
 {
-    return 0;
+    return route(req, res, routePut);
 }
 
 int HttpServer::servePATCH(Request &req, Response &res)
 {
-    return 0;
+    return route(req, res, routePatch);
 }
 
 int HttpServer::serveDELETE(Request &req, Response &res)
 {
-    return 0;
+    return route(req, res, routeDelete);
 }
 
 int HttpServer::serveSPECIFIC(Request &req, Response &res)
 {
-    return 0;
+    return route(req, res, routeSpecific);
+}
+
+void HttpServer::defaultService(Request &req, Response &res)
+{
+    res.setContentType("text/plain");
+    res.writeToBody("Host: " + req.getHost() + "\n");
+    res.writeToBody("URL: " + req.getUrl() + "\n");
+    res.writeToBody("METHOD: " + req.getMethod() + "\n");
+    res.writeToBody("Error: Route Not Found");
 }

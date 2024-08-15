@@ -1,42 +1,44 @@
 #include "miniserver.hpp"
 
-class MyServer : public HttpServer
+int main()
 {
-public:
-    MyServer() : HttpServer() {}
+    HttpServer server;
 
-    int middleWare(Request &req, Response &res) override
+    server.routeGet["/"] = [](Request &req, Response &res) -> int
     {
-        // middleware functions in order;
+        res.setContentType("text/html");
+        res.sendFile("../public/index.html");
+        res.setStatus(200);
         return 0;
-    }
+    };
 
-    int servePOST(Request &req, Response &res) override
+    server.routeGet["/style.css"] = [](Request &req, Response &res) -> int
+    {
+        res.setContentType("text/css");
+        res.sendFile("../public/style.css");
+        return 0;
+    };
+
+    server.routeGet["/index.js"] = [](Request &req, Response &res) -> int
+    {
+        res.setContentType("text/javascript");
+        res.sendFile("../public/index.js");
+        return 0;
+    };
+
+    server.routeGet["/favicon.ico"] = [](Request &req, Response &res) -> int
+    {
+        res.setContentType("image/png");
+        res.sendFile("../public/favicon.png");
+    };
+
+    server.routePost["/"] = [](Request &req, Response &res) -> int
     {
         res.setContentType("application/js");
         res.writeToBody(R"({"name": "Bob"})");
         return 0;
-    }
+    };
 
-    int serveGET(Request &req, Response &res) override
-    {
-        res.setContentType("text/html");
-        std::ifstream file("../index.html");
-        std::string line;
-        if (file.is_open())
-        {
-            while (std::getline(file, line))
-                res.writeToBody(std::string(line));
-        }
-        else
-            std::cerr << "couldn't open file " << std::endl;
-        return 0;
-    }
-};
-
-int main()
-{
-    MyServer server;
-    server.init();
+    server.listen(23000);
     return 0;
 }

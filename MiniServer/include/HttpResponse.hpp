@@ -22,6 +22,8 @@ private:
 
     std::string getGMT();
 
+    bool fileWrite = false;
+
 public:
     // will add detailed comments lator...
     Response(std::stringstream &responseStream);
@@ -31,6 +33,7 @@ public:
     void setHeaderField(std::string key, std::string value);
     void writeToBody(std::string contentStrng);
     void startWriter();
+    bool sendFile(std::string filePath);
 };
 
 #endif

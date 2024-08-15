@@ -23,6 +23,28 @@ void Response::writeToBody(std::string contentString)
     responseBodyStream << contentString;
 }
 
+bool Response::sendFile(std::string filePath)
+{
+    if (fileWrite)
+        return false;
+    std::ifstream file(filePath, std::ios::binary);
+    std::stringstream stream;
+    if (file.is_open())
+    {
+        stream << file.rdbuf();
+        std::string content = stream.str();
+        writeToBody(content);
+    }
+    else
+    {
+        std::cerr << "Couldn't open file " << std::endl;
+        return false;
+    }
+    file.close();
+    fileWrite = true;
+    return true;
+}
+
 void Response::startWriter()
 {
     if (isWriteComplete)

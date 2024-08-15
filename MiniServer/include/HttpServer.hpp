@@ -15,27 +15,12 @@ protected:
     struct sockaddr_in server_addr;
     int server_addr_len;
 
-public:
-    // initializing server with defauld port 23000
-    HttpServer();
-    // initializing server with userdefined port
-    HttpServer(short Port);
-
-    /*
-        invoke's the initTCPconnection method
-        Invoke's this method after object instantiation to start the server listening to port
-        Note: this function will pause the caller thread
-    */
-    void init();
-
     /*
         invoke's the 'middleWare' method before the serve methods
         invoke's the serve methods serveGET, servePOST, servePUT, servePATCH, serveDELETE or
         serveSPECIFIC (for HTTP methods except the above mentioned) based on the clients request HTTP method
     */
     virtual int service(Request &req, Response &res);
-
-    virtual int middleWare(Request &req, Response &res);
 
     // self discriptive HTTP methods
     virtual int serveGET(Request &req, Response &res);
@@ -50,8 +35,25 @@ public:
     */
     virtual int serveSPECIFIC(Request &req, Response &res);
 
-    // will implimente this in the next commit (might reconsider)
-    void defaultService(Request &req, Response &res);
+public:
+    // initializing server with defauld port 23000
+    HttpServer();
+
+    /*
+        invoke's the initTCPconnection method
+        Invoke's this method after object instantiation to start the server listening to port
+        Note: this function will pause the caller thread
+    */
+    void listen(short port);
+
+    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routeGet;
+    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routePost;
+    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routePut;
+    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routePatch;
+    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routeDelete;
+    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routeSpecific;
+
+    std::function<int(Request &req, Response &res)> middleWare;
 
 private:
     /*
@@ -71,6 +73,11 @@ private:
         the heap and clears the allcoated memory after request has been serviced
     */
     int reqInstantiator(SOCKET client_socket_fh, sockaddr_in server_addr);
+
+    // will implimente this in the next commit (might reconsider)
+    void defaultService(Request &req, Response &res);
+
+    int route(Request &req, Response &res, std::unordered_map<std::string, std::function<int(Request &, Response &)>> &route);
 };
 
 #endif
