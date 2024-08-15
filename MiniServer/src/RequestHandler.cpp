@@ -46,10 +46,6 @@ int RequestHandler::handleReqRes()
         if (!startReciving())
             break;
 
-        for (auto headerKeyValue = requestHeadersMap.begin(); headerKeyValue != requestHeadersMap.end(); ++headerKeyValue)
-        {
-            std::cout << headerKeyValue->first << " = " << headerKeyValue->second << std::endl;
-        }
         // stack allocation for now while testing... i dont want things to break in this stage
         Request req(requestHeadersMap, requestBodyStream);
         Response res(responseStream);
@@ -62,7 +58,7 @@ int RequestHandler::handleReqRes()
 
         res.startWriter();
 
-        INFO(responseStream.str());
+        Logger::info(responseStream.str());
 
         if (!startSending())
             break;

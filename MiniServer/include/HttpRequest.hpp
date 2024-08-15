@@ -16,7 +16,7 @@ public:
     // will add detailed comments lator... (or atleast hope so)
     std::string getMethod();
     std::string getUrl();
-    std::stringstream getBodyStream();
+    std::stringstream &getBodyStream();
     std::string getHeaderField(std::string key);
     std::string getContentType();
     std::string getHost();

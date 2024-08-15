@@ -13,15 +13,23 @@ public:
 
     int servePOST(Request &req, Response &res) override
     {
-        res.setContentType("text/html");
-        res.writeToBody("<h1>post</h1>");
+        res.setContentType("application/js");
+        res.writeToBody(R"({"name": "Bob"})");
         return 0;
     }
 
     int serveGET(Request &req, Response &res) override
     {
         res.setContentType("text/html");
-        res.writeToBody("<h1>get</h1>");
+        std::ifstream file("../index.html");
+        std::string line;
+        if (file.is_open())
+        {
+            while (std::getline(file, line))
+                res.writeToBody(std::string(line));
+        }
+        else
+            std::cerr << "couldn't open file " << std::endl;
         return 0;
     }
 };

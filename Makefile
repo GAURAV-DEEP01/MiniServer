@@ -34,6 +34,9 @@ LIBDLL = libminiserver.dll
 $(LIBDLL) : $(LIBTARGETS)
 	$(GXX) -shared -o $(LIB)/$(LIBDLL) $(LIBTARGETS) -l$(SOCKET)
 
+serverLibTest : $(SOURCE)
+	$(GXX) -DENABLE_LOGGER_INFO -o exe/LibTestServer $(SOURCE) -IMiniServer/include/ -LMiniServer/lib -lminiserver 
+
 .PHONY: clear
 
 clear: 

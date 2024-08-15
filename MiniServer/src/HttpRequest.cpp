@@ -6,25 +6,43 @@ Request::Request(
     std::stringstream &requestBodyStream)
     : headerFields(headerFields), requestBodyStream(requestBodyStream) {}
 
-// to do... at this point everything is a to do
-std::string Request::getMethod() { return headerFields["Method"]; }
-
-std::string Request::getUrl() { return headerFields["Url"]; }
-
-std::stringstream Request::getBodyStream()
+// optimizing this later
+std::string Request::getMethod()
 {
-    std::stringstream s("getBodyStream");
-    return s;
+    auto foundField = headerFields.find("Method");
+    if (foundField == headerFields.end())
+        return "";
+    return foundField->second;
 }
-std::string Request::getHeaderField(std::string)
+
+std::string Request::getUrl()
 {
-    return "getHeaderFilds";
+    auto foundField = headerFields.find("Url");
+    if (foundField == headerFields.end())
+        return "";
+    return foundField->second;
+}
+
+std::stringstream &Request::getBodyStream() { return requestBodyStream; }
+
+std::string Request::getHeaderField(std::string key)
+{
+    auto foundField = headerFields.find(key);
+    if (foundField == headerFields.end())
+        return "";
+    return foundField->second;
 }
 std::string Request::getContentType()
 {
-    return "getContentType";
+    auto foundField = headerFields.find("Content-Type");
+    if (foundField == headerFields.end())
+        return "";
+    return foundField->second;
 }
 std::string Request::getHost()
 {
-    return "getHost";
+    auto foundField = headerFields.find("Host");
+    if (foundField == headerFields.end())
+        return "";
+    return foundField->second;
 }
