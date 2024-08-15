@@ -27,7 +27,7 @@ int HttpServer::initTCPconnection()
     }
     Logger::status("Wsa StartUp successful");
 
-    if ((this->server_socket_fh = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    if ((this->server_socket_fh = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
     {
         Logger::err("Socket creation failed", this->server_socket_fh);
         WSACleanup();
@@ -69,7 +69,7 @@ int HttpServer::requestAcceptor()
         {
             SOCKET client_socket_fh;
             server_addr_len = sizeof(this->server_addr);
-            if ((client_socket_fh = accept(this->server_socket_fh, (sockaddr *)&this->server_addr, &server_addr_len)) < 0)
+            if ((client_socket_fh = accept(this->server_socket_fh, (sockaddr *)&this->server_addr, &server_addr_len)) == INVALID_SOCKET)
             {
                 Logger::err("Couldn't accept request INVALID SOCKET");
             }

@@ -10,10 +10,11 @@ private:
     const int maxTimout = 10; // seconds
     int handledRequests = 0;
 
-    bool isHandlerActive = false;
+    std::atomic<bool> isHandlerActive;
 
     const SOCKET client_socket_fh;
     const sockaddr_in server_addr;
+    std::string ipString;
 
     std::stringstream requestHeaderStream;
     std::stringstream requestBodyStream;

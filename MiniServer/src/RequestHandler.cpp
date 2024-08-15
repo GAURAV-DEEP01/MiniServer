@@ -8,18 +8,16 @@ RequestHandler::RequestHandler(
     : requestHeadersMap(),
       client_socket_fh(client_socket_fh),
       service(service),
-      server_addr(server_addr)
+      server_addr(server_addr),
+      isHandlerActive(false)
 {
-    handleReqRes();
-}
+    int timeout = 5000;
+    setsockopt(client_socket_fh, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof(timeout));
 
-RequestHandler::~RequestHandler()
-{
     size_t addressSize = sizeof(this->server_addr.sin_addr.S_un.S_addr);
     char bytes[addressSize];
     strncpy(bytes, (char *)&this->server_addr.sin_addr.S_un.S_addr, addressSize);
 
-    std::string ipString;
     for (int i = 0; i < 4; i++)
     {
         ipString += std::to_string(bytes[i]);
@@ -27,26 +25,37 @@ RequestHandler::~RequestHandler()
             ipString += ".";
     }
 
-    Logger::logs("Connection closed for IP: " +
+    handleReqRes();
+}
+
+RequestHandler::~RequestHandler()
+{
+    Logger::logs("Connection closed, IP: " +
                  ipString +
                  " and PORT: " +
                  std::to_string(this->server_addr.sin_port));
+    shutdown(client_socket_fh, SD_BOTH);
     closesocket(client_socket_fh);
 }
 
 int RequestHandler::handleReqRes()
 {
-    std::thread inactiveMonitor(RequestHandler::monitorClientInactivity, this);
+    // std::thread inactiveMonitor(RequestHandler::monitorClientInactivity, this);
     while (maxRequest > handledRequests++)
     {
         if (!startReciving())
             break;
 
+        for (auto headerKeyValue = requestHeadersMap.begin(); headerKeyValue != requestHeadersMap.end(); ++headerKeyValue)
+        {
+            std::cout << headerKeyValue->first << " = " << headerKeyValue->second << std::endl;
+        }
         // stack allocation for now while testing... i dont want things to break in this stage
         Request req(requestHeadersMap, requestBodyStream);
         Response res(responseStream);
 
-        INFO(requestHeaderStream.str());
+        Logger::info(requestHeaderStream.str());
+
         // request response handle will be done here...
         if (service(req, res) < 0)
             break;
@@ -57,18 +66,22 @@ int RequestHandler::handleReqRes()
 
         if (!startSending())
             break;
+
         if (!clearOneReqResCycle())
             break;
     }
-    inactiveMonitor.join();
+    // inactiveMonitor.join();
     return 0;
 }
 
 bool RequestHandler::isConnectionKeepAlive()
 {
-    auto connection = requestHeadersMap.find("Connection");
-    if ((connection != requestHeadersMap.end()) && connection->second == "keep-alive")
+    std::string connectionKey = "Connection";
+    auto connection = requestHeadersMap.find(connectionKey);
+
+    if (connection != requestHeadersMap.end() && connection->second == "keep-alive")
         return true;
+    Logger::info(connectionKey + "=" + (connection != requestHeadersMap.end() ? connection->second : "not found"));
     return false;
 }
 
@@ -83,41 +96,44 @@ bool RequestHandler::startReciving()
         memset(readBuffer, 0, sizeof(readBuffer));
         size_t bytesRead;
         if ((bytesRead = recv(client_socket_fh, readBuffer, sizeof(readBuffer) - 1, 0)) == 0)
-            return false;
-        else if (bytesRead < 0)
         {
-            Logger::logs("Connection failed!");
             return false;
         }
-        isHandlerActive = true;
+        else if (bytesRead == INVALID_SOCKET)
+        {
+            Logger::logs("Connection failed! or Timeout, IP: " + ipString +
+                         " and PORT: " +
+                         std::to_string(this->server_addr.sin_port));
+            return false;
+        }
+        isHandlerActive.store(true);
         char *headerEndChar = strstr(readBuffer, "\r\n\r\n");
 
         if (isReadingHeader && headerEndChar != nullptr)
         {
             isReadingHeader = false;
             *headerEndChar = '\0';
+
             *currentRequestStream << readBuffer;
             currentRequestStream = &requestBodyStream;
 
             char *reqBodyStartChar = headerEndChar + 4;
             *currentRequestStream << reqBodyStartChar;
+
+            if ((contentLength = requestParserHeader()) == -1)
+                return false;
+
+            int diff = headerEndChar - readBuffer;
+            contentLength -= bytesRead - (diff + 4);
             if (contentLength == 0)
                 break;
-            else
-            {
-                if ((contentLength = this->requestParserHeader()) < 0)
-                    return false;
-                int diff = (headerEndChar - readBuffer);
-                contentLength -= bytesRead - (diff + 4);
-                if (contentLength == 0)
-                    break;
-            }
         }
         else
         {
             *currentRequestStream << readBuffer;
             if (!isReadingHeader)
                 contentLength -= bytesRead;
+
             if (contentLength <= 0)
                 break;
         }
@@ -135,13 +151,27 @@ bool RequestHandler::startSending()
         int bytesSent = send(client_socket_fh, writeBuffer, sizeof(writeBuffer), 0);
         if (bytesSent == SOCKET_ERROR)
         {
-            Logger::err("Send failed: " + std::string(strerror(WSAGetLastError())),
+            Logger::err("Send failed," +
+                            ipString +
+                            " and PORT: " +
+                            std::to_string(this->server_addr.sin_port) +
+                            std::string(strerror(WSAGetLastError())),
                         client_socket_fh);
             return false;
         }
     }
-    Logger::logs("Send complete");
+    Logger::logs("Send complete, IP: " +
+                 ipString +
+                 " and PORT: " +
+                 std::to_string(this->server_addr.sin_port));
     return true;
+}
+
+static std::string trim(const std::string &s)
+{
+    size_t start = s.find_first_not_of(" \t\r\n");
+    size_t end = s.find_last_not_of(" \t\r\n");
+    return (start == std::string::npos) ? "" : s.substr(start, end - start + 1);
 }
 
 int RequestHandler::requestParserHeader()
@@ -162,13 +192,15 @@ int RequestHandler::requestParserHeader()
     // header field parsing
     while (std::getline(requestHeaderStream, key, ':'))
     {
-        requestHeaderStream.ignore(1);
         std::getline(requestHeaderStream, value);
-        requestHeadersMap[key] = value;
+        key = trim(key);
+        value = trim(value);
+        if (!key.empty() && !value.empty())
+            requestHeadersMap[key] = value;
     }
     if (!requestHeaderStream.eof())
     {
-        Logger::status("Couldn't parse header");
+        Logger::err("Couldn't parse header");
         return -1;
     }
     auto bodySize = requestHeadersMap.find("Content-Length");
@@ -181,27 +213,21 @@ int RequestHandler::requestParserHeader()
 
 bool RequestHandler::clearOneReqResCycle()
 {
+    if (!isConnectionKeepAlive())
+        return false;
     requestHeaderStream.clear();
-    requestHeadersMap.clear();
     requestBodyStream.clear();
     responseStream.clear();
-    if (!isConnectionKeepAlive())
-    {
-        Logger::info("false");
-        return false;
-    }
-    else
-        Logger::info("true");
-    isHandlerActive = false;
+    requestHeadersMap.clear();
+    isHandlerActive.store(true);
     handledRequests++;
     return true;
 }
 
 void RequestHandler::monitorClientInactivity()
 {
-
-    const int monitoringInterval = 2;
-    std::this_thread::sleep_for(std::chrono::seconds(monitoringInterval));
+    const int monitoringInterval = 5;
+    while (isHandlerActive.load())
+        std::this_thread::sleep_for(std::chrono::seconds(monitoringInterval));
     shutdown(client_socket_fh, SD_BOTH);
-    Logger::info("After 10 seconds! now the socket is closed!");
 }

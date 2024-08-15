@@ -39,7 +39,7 @@ namespace Logger
         curr_tm = localtime(&curr_time);
         strftime(time_string, sizeof(time_string), "%Y-%m-%d %H:%M:%S", curr_tm);
 
-        std::cerr << "{ '" << log << "' , time: " << time_string << " }" << std::endl;
+        std::cout << "{ '" << log << "' , time: " << time_string << " }" << std::endl;
         loggerAccess.unlock();
     }
 }
