@@ -30,6 +30,7 @@ int main()
     {
         res.setContentType("image/png");
         res.sendFile("../public/favicon.png");
+        return 0;
     };
 
     server.routePost["/"] = [](Request &req, Response &res) -> int

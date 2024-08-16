@@ -18,15 +18,19 @@ private:
 
     // whole response
     bool isWriteComplete = false;
-    std::stringstream &responseStream;
+    std::stringstream responseStream;
+
+    std::vector<unsigned char> &responseBuffer;
+    std::vector<unsigned char> responseBodybuffer;
 
     std::string getGMT();
 
-    bool fileWrite = false;
+    bool isWritebody = false;
+    bool isfileWrite = false;
 
 public:
     // will add detailed comments lator...
-    Response(std::stringstream &responseStream);
+    Response(std::vector<unsigned char> &responseBuffer);
     void setStatus(int statusCode);
     void setContentType(std::string contentType);
     void setReasonPhrase(std::string reasonPhrase);

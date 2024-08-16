@@ -46,7 +46,7 @@ int RequestHandler::handleReqRes()
 
         // stack allocation for now while testing... i dont want things to break in this stage
         Request req(requestHeadersMap, requestBodyStream);
-        Response res(responseStream);
+        Response res(responseBuffer);
 
         Logger::info(requestHeaderStream.str());
 
@@ -56,8 +56,7 @@ int RequestHandler::handleReqRes()
 
         res.startWriter();
 
-        Logger::info(responseStream.str());
-
+        Logger::info(std::string((char *)responseBuffer.data(), responseBuffer.size()));
         if (!startSending())
             break;
 
@@ -135,22 +134,18 @@ bool RequestHandler::startReciving()
 
 bool RequestHandler::startSending()
 {
-    char writeBuffer[300];
-    while (responseStream.read(writeBuffer, sizeof(writeBuffer)) ||
-           responseStream.gcount() > 0)
+    int bytesSent = send(client_socket_fh, (char *)responseBuffer.data(), responseBuffer.size(), 0);
+    if (bytesSent == SOCKET_ERROR)
     {
-        int bytesSent = send(client_socket_fh, writeBuffer, responseStream.gcount(), 0);
-        if (bytesSent == SOCKET_ERROR)
-        {
-            Logger::err("Send failed," +
-                            ipString +
-                            " and PORT: " +
-                            std::to_string(this->server_addr.sin_port) +
-                            std::string(strerror(WSAGetLastError())),
-                        client_socket_fh);
-            return false;
-        }
+        Logger::err("Send failed," +
+                        ipString +
+                        " and PORT: " +
+                        std::to_string(this->server_addr.sin_port) +
+                        std::string(strerror(WSAGetLastError())),
+                    client_socket_fh);
+        return false;
     }
+
     Logger::logs("Send complete, IP: " +
                  ipString +
                  " and PORT: " +
@@ -178,7 +173,7 @@ int RequestHandler::requestParserHeader()
     requestHeadersMap["Url"] = value;
 
     requestHeaderStream >> value;
-    requestHeadersMap["version"] = value;
+    requestHeadersMap["Version"] = value;
 
     // header field parsing
     while (std::getline(requestHeaderStream, key, ':'))
@@ -209,9 +204,8 @@ bool RequestHandler::clearOneReqResCycle()
     requestHeaderStream.clear();
     requestHeaderStream.str("");
     requestBodyStream.clear();
+    responseBuffer.clear();
     requestBodyStream.str("");
-    responseStream.clear();
-    responseStream.str("");
     requestHeadersMap.clear();
     handledRequests++;
     return true;

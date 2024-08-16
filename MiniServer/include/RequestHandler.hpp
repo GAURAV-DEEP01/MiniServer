@@ -20,7 +20,7 @@ private:
     std::stringstream requestBodyStream;
     std::unordered_map<std::string, std::string> requestHeadersMap;
 
-    std::stringstream responseStream;
+    std::vector<unsigned char> responseBuffer;
 
     const std::function<int(Request &req, Response &res)> &service;
 
