@@ -33,13 +33,6 @@ int main()
         return 0;
     };
 
-    server.routePost["/"] = [](Request &req, Response &res) -> int
-    {
-        res.setContentType("application/js");
-        res.writeToBody(R"({"name": "Bob"})");
-        return 0;
-    };
-
     server.listen(23000);
     return 0;
 }

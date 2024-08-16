@@ -19,7 +19,7 @@ all: build buildTest
 
 util.o = $(SRC)/$(HTTPSERVER) $(SRC)/$(LOGGER) $(SRC)/$(REQUESTHANDLER) $(SRC)/$(HTTPREQUEST) $(SRC)/$(HTTPRESPONSE)
 
-build : clear $(SOURCE)
+build : makeExe clear $(SOURCE)
 	$(GXX) -o $(APPDIR)/$(APP) $(util.o) -l$(SOCKET) $(SOURCE) -I$(INCLUDE)
 
 buildTest : clear $(SOURCE)
@@ -37,7 +37,11 @@ $(LIBDLL) : $(LIBTARGETS)
 serverLibTest : $(SOURCE)
 	$(GXX) -DENABLE_LOGGER_INFO -o exe/LibTestServer $(SOURCE) -IMiniServer/include/ -LMiniServer/lib -lminiserver 
 
+
 .PHONY: clear
+
+makeExe: 
+	mkdir -p exe
 
 clear: 
 	rm -f exe/WebServer && rm -f exe/TestServer

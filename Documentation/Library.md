@@ -1,0 +1,3 @@
+## How to use Mini Server as a library
+
+will work on this after my exams...
