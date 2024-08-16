@@ -50,7 +50,10 @@ You can define routes and handle requests using the following API:
 // Inside the main create a HttpServer instance
 HttpServer server;
 
-// Define route method (There are routes for other HTTP methods too)
+/*
+    Define route method (There are routes for other HTTP methods too)
+    Make sure you have 'index.html'
+*/
 server.routeGet["/"] = [](Request &req, Response &res) -> int
 {
     res.setContentType("text/html");

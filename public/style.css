@@ -1,4 +1,3 @@
-/* Basic Reset */
 * {
     margin: 0;
     padding: 0;
@@ -7,50 +6,124 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f7f9fc;
-    color: #333;
+    background-color: #151515;
+    color: #f1f1f1b1;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
 header {
-    background-color: #4a90e2;
-    color: #fff;
+    background-color: #4a91e2df;
+    color: #151515;
     padding: 20px;
     text-align: center;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+header h1 {
+    display: inline-block;
+    margin-bottom: 0.5em;
+}
+
+header a {
+    position: absolute;
+    top: 50%;
+    right: 50px;
+    transform: translateY(-50%);
+}
+
+.github-logo {
+    width: 40px;
+    height: 40px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.github-logo:hover {
+    transform: scale(1.1);
 }
 
 main {
     flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
 }
 
-#status-container {
-    text-align: center;
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+section {
+    margin-bottom: 2em;
 }
 
-h1 {
+h2 {
+    margin-bottom: 1em;
+    color: #4a90e2;
+    font-size: 1.5em;
+}
+
+h3 {
     margin-bottom: 0.5em;
+    color: #f1f1f1;
+    font-size: 1.2em;
 }
 
-#status-message {
-    font-size: 1.2em;
-    color: #555;
+ul {
+    list-style-type: disc;
+    margin-left: 20px;
+    margin-bottom: 1em;
+}
+
+pre {
+    background-color: #f1f1f107;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin-bottom: 1em;
+    scrollbar-color: black;
+}
+
+pre::-webkit-scrollbar {
+    width: 8px; 
+    height: 10px;
+}
+
+pre::-webkit-scrollbar-track {
+    background: #242424; 
+}
+
+pre::-webkit-scrollbar-thumb {
+    background-color: #373737;
+    border-radius: 6px; 
+    border: 3px solid #383838;
+}
+
+code {
+    font-family: 'Courier New', Courier, monospace;
+    color: #ff83c1;
 }
 
 footer {
     background-color: #4a90e2;
-    color: #fff;
+    color: #ffffffc6;
     text-align: center;
     padding: 10px;
     font-size: 0.9em;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
 }
+
+#heading-message{
+    margin-bottom: 0.5em;
+    color: #4a90e2;
+    font-size: 1.5em;
+}
+
+#status-container {
+    text-align: center;
+    background-color: #191919;
+    padding: 30px;
+    margin:70px 0px 70px 10px;
+    border-radius: 12px;
+    border: solid rgba(0, 0, 0, 0.215);
+}
+
+

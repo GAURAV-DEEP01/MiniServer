@@ -7,10 +7,8 @@ class RequestHandler
 {
 private:
     const int maxRequest = 100;
-    const int maxTimout = 10000; // seconds
+    const int maxTimout = 10000; // milliseconds
     int handledRequests = 0;
-
-    std::atomic<bool> isHandlerActive;
 
     const SOCKET client_socket_fh;
     const sockaddr_in server_addr;
@@ -54,10 +52,13 @@ private:
     // Checks the header if connection is set to keep alive
     bool isConnectionKeepAlive();
 
-    void monitorClientInactivity();
-
+    // recv is invoked here
     bool startReciving();
 
+    /*
+        send is invoked here
+        headerData is stored in 'requestHeadersMap'
+    */
     bool startSending();
 
     // clears all streams and header map

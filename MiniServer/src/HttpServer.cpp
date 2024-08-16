@@ -4,12 +4,6 @@
 #include "../include/HttpRequest.hpp"
 #include "../include/HttpResponse.hpp"
 
-typedef enum SERVERCONST
-{
-    SERVER_ERROR = -1,
-    METHOD_NOT_FOUND = 1
-} SERVERCONST;
-
 HttpServer::HttpServer() : port(PORT) {}
 
 void HttpServer::listen(short port)
@@ -157,7 +151,7 @@ int HttpServer::route(
     Request &req, Response &res,
     std::unordered_map<std::string, std::function<int(Request &, Response &)>> &route)
 {
-    auto foundMethod = route.find(req.getUrl());
+    auto foundMethod = route.find(req.getBaseRouteUrl());
     if (foundMethod != route.end())
         return foundMethod->second(req, res);
     return METHOD_NOT_FOUND;
@@ -193,11 +187,14 @@ int HttpServer::serveSPECIFIC(Request &req, Response &res)
     return route(req, res, routeSpecific);
 }
 
+// override this method to route NOT FOUND pages
 void HttpServer::defaultService(Request &req, Response &res)
 {
+    res.setStatus(404);
+    res.setReasonPhrase("NOT FOUND");
     res.setContentType("text/plain");
     res.writeToBody("Host: " + req.getHost() + "\n");
     res.writeToBody("URL: " + req.getUrl() + "\n");
     res.writeToBody("METHOD: " + req.getMethod() + "\n");
     res.writeToBody("Error: Route Not Found");
-}       
+}

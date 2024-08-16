@@ -8,6 +8,11 @@ class Request
 private:
     std::unordered_map<std::string, std::string> &headerFields;
     std::stringstream &requestBodyStream;
+    std::unordered_map<std::string, std::string> queryParams;
+
+    std::string url;
+    std::string routeUrl;
+    std::string baseUrl;
 
 public:
     Request(std::unordered_map<std::string, std::string> &headerFields,
@@ -16,6 +21,9 @@ public:
     // will add detailed comments lator... (or atleast hope so)
     std::string getMethod();
     std::string getUrl();
+    std::string getBaseUrl();
+    std::string getBaseRouteUrl();
+    std::string getParameter(std::string key);
     std::stringstream &getBodyStream();
     std::string getHeaderField(std::string key);
     std::string getContentType();

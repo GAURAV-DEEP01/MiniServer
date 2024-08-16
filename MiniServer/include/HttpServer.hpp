@@ -5,6 +5,13 @@
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
 
+typedef enum SERVERCONST
+{
+    SERVER_ERROR = -1,
+    SAFE_EXIT = 0,
+    METHOD_NOT_FOUND = 1
+} SERVERCONST;
+
 class HttpServer
 {
 protected:
@@ -22,7 +29,7 @@ protected:
     */
     virtual int service(Request &req, Response &res);
 
-    // self discriptive HTTP methods
+    // Routes the client HTTP methods to respective umap funtion
     virtual int serveGET(Request &req, Response &res);
     virtual int servePOST(Request &req, Response &res);
     virtual int servePUT(Request &req, Response &res);
@@ -35,6 +42,9 @@ protected:
     */
     virtual int serveSPECIFIC(Request &req, Response &res);
 
+    // override this method if you want to serve not found response
+    void defaultService(Request &req, Response &res);
+
 public:
     // initializing server with defauld port 23000
     HttpServer();
@@ -46,14 +56,23 @@ public:
     */
     void listen(short port);
 
+    // this method is invoked before the route methods
+    std::function<int(Request &req, Response &res)> middleWare;
+
+    /*
+        @brief:
+        these are used for routes each umap routes their methods
+
+        @return:
+        return 0 if no errors
+        return -1 or SERVER_ERROR to close the connection and discard the request2
+    */
     std::unordered_map<std::string, std::function<int(Request &, Response &)>> routeGet;
     std::unordered_map<std::string, std::function<int(Request &, Response &)>> routePost;
     std::unordered_map<std::string, std::function<int(Request &, Response &)>> routePut;
     std::unordered_map<std::string, std::function<int(Request &, Response &)>> routePatch;
     std::unordered_map<std::string, std::function<int(Request &, Response &)>> routeDelete;
     std::unordered_map<std::string, std::function<int(Request &, Response &)>> routeSpecific;
-
-    std::function<int(Request &req, Response &res)> middleWare;
 
 private:
     /*
@@ -73,9 +92,6 @@ private:
         the heap and clears the allcoated memory after request has been serviced
     */
     int reqInstantiator(SOCKET client_socket_fh, sockaddr_in server_addr);
-
-    // will implimente this in the next commit (might reconsider)
-    void defaultService(Request &req, Response &res);
 
     int route(Request &req, Response &res, std::unordered_map<std::string, std::function<int(Request &, Response &)>> &route);
 };

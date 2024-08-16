@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const statusMessage = document.getElementById('status-message');
+    const statusMessage = document.getElementById('heading-message');
 
     fetch('/status')
         .then(response => {
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         })
         .then(data => {
-            statusMessage.textContent = 'Server is up and running: ' + data;
+            statusMessage.textContent =  data;
         })
         .catch(error => {
             statusMessage.textContent = 'Server is down: ' + error.message;

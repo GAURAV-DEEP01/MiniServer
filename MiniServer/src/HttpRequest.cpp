@@ -4,23 +4,57 @@
 Request::Request(
     std::unordered_map<std::string, std::string> &headerFields,
     std::stringstream &requestBodyStream)
-    : headerFields(headerFields), requestBodyStream(requestBodyStream) {}
+    : headerFields(headerFields), requestBodyStream(requestBodyStream)
+{
+    std::string url = getHeaderField("Url");
+    std::size_t idx = url.find('?');
+    if (idx == std::string::npos)
+    {
+        routeUrl = url;
+        baseUrl = url;
+    }
+    else
+    {
+        baseUrl = url.substr(0, idx);
+        routeUrl = url.substr(0, idx + 1);
+
+        std::string queryParameterStr = url.substr(idx + 1);
+        std::stringstream queryParamStream(queryParameterStr);
+        std::string key, value;
+        while (std::getline(queryParamStream, key, '='))
+        {
+            std::getline(queryParamStream, value, '&');
+            queryParams[key] = value;
+        }
+    }
+}
 
 // optimizing this later
 std::string Request::getMethod()
 {
-    auto foundField = headerFields.find("Method");
-    if (foundField == headerFields.end())
-        return "";
-    return foundField->second;
+    return getHeaderField("Method");
 }
 
 std::string Request::getUrl()
 {
-    auto foundField = headerFields.find("Url");
-    if (foundField == headerFields.end())
+    return getHeaderField("Url");
+}
+
+std::string Request::getBaseRouteUrl()
+{
+    return routeUrl;
+}
+std::string Request::getBaseUrl()
+{
+    return baseUrl;
+}
+
+std::string Request::getParameter(std::string key)
+{
+    auto foundParam = queryParams.find(key);
+    if (foundParam == queryParams.end())
         return "";
-    return foundField->second;
+    return foundParam->second;
 }
 
 std::stringstream &Request::getBodyStream() { return requestBodyStream; }
@@ -34,15 +68,9 @@ std::string Request::getHeaderField(std::string key)
 }
 std::string Request::getContentType()
 {
-    auto foundField = headerFields.find("Content-Type");
-    if (foundField == headerFields.end())
-        return "";
-    return foundField->second;
+    return getHeaderField("Content-Type");
 }
 std::string Request::getHost()
 {
-    auto foundField = headerFields.find("Host");
-    if (foundField == headerFields.end())
-        return "";
-    return foundField->second;
+    return getHeaderField("Host");
 }

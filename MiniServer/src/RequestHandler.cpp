@@ -8,10 +8,11 @@ RequestHandler::RequestHandler(
     : requestHeadersMap(),
       client_socket_fh(client_socket_fh),
       service(service),
-      server_addr(server_addr),
-      isHandlerActive(false)
+      server_addr(server_addr)
 {
-    setsockopt(client_socket_fh, SOL_SOCKET, SO_RCVTIMEO, (const char *)&maxTimout, sizeof(maxTimout));
+    setsockopt(client_socket_fh, SOL_SOCKET, SO_RCVTIMEO,
+               (const char *)&maxTimout,
+               sizeof(maxTimout));
 
     size_t addressSize = sizeof(this->server_addr.sin_addr.S_un.S_addr);
     char bytes[addressSize];
@@ -48,15 +49,12 @@ int RequestHandler::handleReqRes()
         Request req(requestHeadersMap, requestBodyStream);
         Response res(responseBuffer);
 
-        Logger::info(requestHeaderStream.str());
-
         // request response handle will be done here...
         if (service(req, res) < 0)
             break;
 
         res.startWriter();
 
-        Logger::info(std::string((char *)responseBuffer.data(), responseBuffer.size()));
         if (!startSending())
             break;
 
@@ -93,7 +91,7 @@ bool RequestHandler::startReciving()
         }
         else if (bytesRead == INVALID_SOCKET)
         {
-            Logger::logs("Connection failed! or Timeout, IP: " + ipString +
+            Logger::logs("Connection Timeout or failed!, IP: " + ipString +
                          " and PORT: " +
                          std::to_string(this->server_addr.sin_port));
             return false;

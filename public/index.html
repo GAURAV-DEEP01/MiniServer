@@ -1,23 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MiniServer Status</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
     <header>
         <h1>MiniServer</h1>
+        <a href="https://github.com/GAURAV-DEEP01" target="_blank">
+            <img src="github-logo.png" alt="GitHub Logo" class="github-logo" />
+        </a>
     </header>
     <main>
         <div id="status-container">
-            <p id="status-message">Checking server status...</p>
+            <p id="heading-message"></p>
         </div>
+        <section id="description">
+            <h2>About MiniServer</h2>
+            <p>
+                MiniServer is a lightweight C++ HTTP/1.1 server built from scratch.
+                It's easily modifiable and features a simple routing API.
+            </p>
+        </section>
+
+        <section id="features">
+            <h2>Features</h2>
+            <ul>
+                <li>
+                    <strong>Lightweight HTTP Server:</strong> Handles HTTP requests such
+                    as GET, POST, PUT, DELETE, and other methods using method-specific
+                    handlers.
+                </li>
+                <li>
+                    <strong>Connection Keep-Alive:</strong> Supports HTTP/1.1 persistent
+                    connections.
+                </li>
+                <li>
+                    <strong>Routing System:</strong> Define routes with lambda
+                    functions.
+                </li>
+                <li>
+                    <strong>Customizable Responses:</strong> Set content type, status
+                    codes, and more.
+                </li>
+            </ul>
+        </section>
+
+        <section id="quick-start">
+            <h2>Quick Start</h2>
+            <h3>Prerequisites</h3>
+            <ul>
+                <li>C++17 or later</li>
+                <li>A compatible compiler (G++)</li>
+                <li>Make build tool</li>
+            </ul>
+
+            <h3>Cloning the Repository</h3>
+            <pre><code>git clone // ill add later
+cd Mini-Server
+            </code></pre>
+
+            <h3>Building the Project</h3>
+            <p>Using Make to build the project:</p>
+            <pre><code>make build</code></pre>
+            <p>
+                This builds the project and outputs <code>Webserver.exe</code> inside
+                an <code>exe</code> folder in your project directory.
+            </p>
+            <p>
+                If you don't want to run the whole project, you can use it as a
+                library instead. Additional documentation will be done soon...
+            </p>
+
+            <h3>Running the Server</h3>
+            <pre><code>./WebServer</code></pre>
+        </section>
+
+        <section id="example-usage">
+            <h2>Simple Example Usage</h2>
+            <p>
+                You can define routes and handle requests using the following API:
+            </p>
+            <pre><code>// Inside main, create a HttpServer instance
+HttpServer server;
+
+// Define route method (There are routes for other HTTP methods too)
+// Make sure you have 'index.html'
+server.routeGet["/"] = [](Request &req, Response &res) -> int {
+    res.setContentType("text/html");
+    res.sendFile("index.html");
+    res.setStatus(200);
+    return 0;
+};
+
+// Listen on a port (This method invocation should be after all 'route' definitions)
+server.listen(9090);
+        </code></pre>
+            <p>Now, check out <code>localhost:9090/</code> on your browser.</p>
+        </section>
+        <section id="contributing">
+            <h2>Contributing</h2>
+            <p>
+                Contributions are welcome! Please submit a pull request or open an
+                issue to discuss any changes.
+            </p>
+            <a href="https://github.com/GAURAV-DEEP01" target="_blank">Github</a>
+        </section>
     </main>
+
     <footer>
         <p>© 2024 MiniServer Project</p>
     </footer>
     <script src="script.js"></script>
 </body>
+
 </html>
