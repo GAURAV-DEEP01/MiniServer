@@ -19,10 +19,10 @@ int main()
         return 0;
     };
 
-    server.routeGet["/index.js"] = [](Request &req, Response &res) -> int
+    server.routeGet["/script.js"] = [](Request &req, Response &res) -> int
     {
         res.setContentType("text/javascript");
-        res.sendFile("../public/index.js");
+        res.sendFile("../public/script.js");
         return 0;
     };
 
@@ -30,6 +30,13 @@ int main()
     {
         res.setContentType("image/png");
         res.sendFile("../public/favicon.png");
+        return 0;
+    };
+
+    server.routeGet["/status"] = [](Request &req, Response &res) -> int
+    {
+        res.setContentType("text/plain");
+        res.writeToBody("This message is fetched from the server");
         return 0;
     };
 
