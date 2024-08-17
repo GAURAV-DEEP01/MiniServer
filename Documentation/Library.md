@@ -51,13 +51,13 @@ Now, to compile the program you must do these steps (You can use Make build tool
 Here's all the three steps in one command
 
 ```cmd
-g++ <your-program-name>.cpp -IMiniServer/include -LMiniServer/lib -lminiserver
+g++ -o miniserver <your-program-name>.cpp -IMiniServer/include -LMiniServer/lib -lminiserver
 ```
 
 If the compilation is successfull you can execute the program
 
 ```cmd
-a.exe
+miniserver
 ```
 
 And done now your server is listening to the port 9090 go to your browser or any tool and search `localhost:9090`
