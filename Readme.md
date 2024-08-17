@@ -13,6 +13,7 @@ Mini Server is a lightweight C++ HTTP/1.1 server built from scratch it's easy mo
 
 ### Prerequisites
 
+- Windows
 - C++17 or later
 - A compatible compiler (G++)
 - Make build tool
@@ -34,6 +35,20 @@ Compiles the whole project and will output `Webserver.exe` inside a `exe` folder
 make build
 ```
 
+If you dont have Make build tool use this
+
+step 1: create a directory exe
+
+```cmd
+mkdir -p exe
+```
+
+step 2: build the project
+
+```cmd
+g++ -o exe/WebServer MiniServer/src/HttpServer.cpp MiniServer/src/Logger.cpp MiniServer/src/RequestHandler.cpp MiniServer/src/HttpRequest.cpp MiniServer/src/HttpResponse.cpp -lws2_32 server.cpp -IMiniServer/include
+```
+
 - If you dont want to run the whole project, you can use it as a library instead view [How to use MiniServer as Library](/Documentation/Library.md)
 
 ### Running the Server
@@ -48,13 +63,13 @@ You can define routes and handle requests using the following API:
 
 ```cpp
 // Inside the main create a HttpServer instance
-HttpServer server;
+HttpServer app;
 
 /*
     Define route method (There are routes for other HTTP methods too)
-    Make sure you have 'index.html'
+    Make sure you have the 'index.html' file
 */
-server.routeGet["/"] = [](Request &req, Response &res) -> int
+app.routeGet["/"] = [](Request &req, Response &res) -> int
 {
     res.setContentType("text/html");
     res.sendFile("index.html");
@@ -63,7 +78,7 @@ server.routeGet["/"] = [](Request &req, Response &res) -> int
 };
 
 // Listen on a port (This method invokation should be after all the 'route' definition)
-server.listen(9090);
+app.listen(9090);
 ```
 
 Now, checkout `localhost:9090/` on your browser
@@ -72,6 +87,8 @@ Now, checkout `localhost:9090/` on your browser
 
 - [How Routing Works](/Documentation/Routes.md)
 - [How to use Miniserver as Library](/Documentation/Library.md)
+
+- Documentation for Windows socket API [winsock2.h](https://learn.microsoft.com/en-us/windows/win32/api/winsock2/)
 
 ## Contributing
 

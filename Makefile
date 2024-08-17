@@ -17,22 +17,19 @@ HTTPRESPONSE = HttpResponse.cpp
 
 all: build buildTest
 
-util.o = $(SRC)/$(HTTPSERVER) $(SRC)/$(LOGGER) $(SRC)/$(REQUESTHANDLER) $(SRC)/$(HTTPREQUEST) $(SRC)/$(HTTPRESPONSE)
+SOURCEFILES = $(SRC)/$(HTTPSERVER) $(SRC)/$(LOGGER) $(SRC)/$(REQUESTHANDLER) $(SRC)/$(HTTPREQUEST) $(SRC)/$(HTTPRESPONSE)
 
 build : makeExe clear $(SOURCE)
-	$(GXX) -o $(APPDIR)/$(APP) $(util.o) -l$(SOCKET) $(SOURCE) -I$(INCLUDE)
+	$(GXX) -o $(APPDIR)/$(APP) $(SOURCEFILES) -l$(SOCKET) $(SOURCE) -I$(INCLUDE)
 
 buildTest : clear $(SOURCE)
-	$(GXX) -DENABLE_LOGGER_INFO -DNDEBUG -Wall -Wextra -o $(APPDIR)/$(TESTAPP) $(util.o) -l$(SOCKET) $(SOURCE) -I$(INCLUDE)  	 	
+	$(GXX) -DENABLE_LOGGER_INFO -DNDEBUG -Wall -Wextra -o $(APPDIR)/$(TESTAPP) $(SOURCEFILES) -l$(SOCKET) $(SOURCE) -I$(INCLUDE)  	 	
 
-
-# ill definitly add comments here later....
-LIBTARGETS = $(SRC)/$(HTTPSERVER) $(SRC)/$(LOGGER) $(SRC)/$(REQUESTHANDLER) $(SRC)/$(HTTPREQUEST) $(SRC)/$(HTTPRESPONSE)
 LIBDLL = libminiserver.dll
 
 
-$(LIBDLL) : $(LIBTARGETS)
-	$(GXX) -shared -o $(LIB)/$(LIBDLL) $(LIBTARGETS) -l$(SOCKET)
+$(LIBDLL) : $(SOURCEFILES)
+	$(GXX) -shared -o $(LIB)/$(LIBDLL) $(SOURCEFILES) -l$(SOCKET)
 
 serverLibTest : $(SOURCE)
 	$(GXX) -DENABLE_LOGGER_INFO -o exe/LibTestServer $(SOURCE) -IMiniServer/include/ -LMiniServer/lib -lminiserver 

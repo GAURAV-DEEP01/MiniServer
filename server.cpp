@@ -47,7 +47,14 @@ int main()
         return 0;
     };
 
-    server.routeGet["/items?"] = [](Request &req, Response &res) -> int
+    server.routeGet["/linkedin-logo.png"] = [](Request &req, Response &res) -> int
+    {
+        res.setContentType("image/png");
+        res.sendFile("../public/linkedin-logo.png");
+        return 0;
+    };
+
+    server.routePost["/items?"] = [](Request &req, Response &res) -> int
     {
         res.setContentType("text/html");
         res.writeToBody("<h1> id: " + req.getParameter("id") + "</h1>");

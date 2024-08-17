@@ -9,7 +9,8 @@ typedef enum SERVERCONST
 {
     SERVER_ERROR = -1,
     SAFE_EXIT = 0,
-    METHOD_NOT_FOUND = 1
+    METHOD_NOT_FOUND = 1,
+    MIDDLEWARE_ERROR = 2
 } SERVERCONST;
 
 class HttpServer

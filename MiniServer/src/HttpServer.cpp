@@ -126,7 +126,9 @@ int HttpServer::service(Request &req, Response &res)
 {
     std::string method = req.getMethod();
 
-    middleWare(req, res);
+    int middleWareStatus = middleWare(req, res);
+    if ((middleWareStatus == MIDDLEWARE_ERROR) || (middleWareStatus == SERVER_ERROR))
+        return SERVER_ERROR;
 
     int servicesStatus;
     if (method == "GET")

@@ -71,6 +71,15 @@ cd Mini-Server
                 This builds the project and outputs <code>Webserver.exe</code> inside
                 an <code>exe</code> folder in your project directory.
             </p>
+            <p><br>
+            If you dont have Make build tool use this<br>
+            step 1: create a directory exe
+            <pre><code>mkdir -p exe</code></pre>
+            </p>
+            </p>
+            <p>step 2: build the project
+            <pre><code>g++ -o exe/WebServer MiniServer/src/HttpServer.cpp MiniServer/src/Logger.cpp MiniServer/src/RequestHandler.cpp MiniServer/src/HttpRequest.cpp MiniServer/src/HttpResponse.cpp -lws2_32 server.cpp -IMiniServer/include</code></pre>
+            </p>
             <p>
                 If you don't want to run the whole project, you can use it as a
                 library instead. Additional documentation will be done soon...
@@ -89,7 +98,7 @@ cd Mini-Server
 HttpServer server;
 
 // Define route method (There are routes for other HTTP methods too)
-// Make sure you have 'index.html'
+// Make sure you have the 'index.html' file
 server.routeGet["/"] = [](Request &req, Response &res) -> int {
     res.setContentType("text/html");
     res.sendFile("index.html");
@@ -108,10 +117,28 @@ server.listen(9090);
                 Contributions are welcome! Please submit a pull request or open an
                 issue to discuss any changes.
             </p>
-            <a href="https://github.com/GAURAV-DEEP01" target="_blank">Github</a>
         </section>
     </main>
-
+    <section id="creator">
+        <h2>About the Creator</h2>
+        <p>
+            MiniServer was developed by Gaurav Deep, I am a Information Science Engineering student built this project for fun.
+         </p>
+        <p>Connect with me:</p>
+        <ul class="social-links">
+            <li>
+                <a href="https://github.com/GAURAV-DEEP01" target="_blank">
+                    <img src="github-logo.png" alt="GitHub Logo" class="social-logo" />GitHub
+                </a>
+            </li>
+            <li>
+                <a href="https://www.linkedin.com/in/gaurav-deep01" target="_blank">
+                    <img src="linkedin-logo.png" alt="LinkedIn Logo" class="social-logo" />LinkedIn
+                </a>
+            </li>
+        </ul>
+    </section>
+    
     <footer>
         <p>© 2024 MiniServer Project</p>
     </footer>

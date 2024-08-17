@@ -29,8 +29,9 @@ private:
     bool isfileWrite = false;
 
 public:
-    // will add detailed comments lator...
     Response(std::vector<unsigned char> &responseBuffer);
+
+    // sets reponse status to given integer status
     void setStatus(int statusCode);
     void setContentType(std::string contentType);
     void setReasonPhrase(std::string reasonPhrase);

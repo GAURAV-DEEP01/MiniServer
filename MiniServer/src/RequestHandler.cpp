@@ -45,15 +45,14 @@ int RequestHandler::handleReqRes()
         if (!startReciving())
             break;
 
-        // stack allocation for now while testing... i dont want things to break in this stage
-        Request req(requestHeadersMap, requestBodyStream);
-        Response res(responseBuffer);
+        std::unique_ptr<Request> req = std::make_unique<Request>(requestHeadersMap, requestBodyStream);
+        std::unique_ptr<Response> res = std::make_unique<Response>(responseBuffer);
 
         // request response handle will be done here...
-        if (service(req, res) < 0)
+        if (service(*req, *res) < 0)
             break;
 
-        res.startWriter();
+        res->startWriter();
 
         if (!startSending())
             break;
@@ -199,12 +198,16 @@ bool RequestHandler::clearOneReqResCycle()
 {
     if (!isConnectionKeepAlive())
         return false;
+
     requestHeaderStream.clear();
     requestHeaderStream.str("");
+
     requestBodyStream.clear();
-    responseBuffer.clear();
     requestBodyStream.str("");
+
+    responseBuffer.clear();
     requestHeadersMap.clear();
+
     handledRequests++;
     return true;
 }
