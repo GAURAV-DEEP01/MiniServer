@@ -21,8 +21,8 @@ Mini Server is a lightweight C++ HTTP/1.1 server built from scratch it's easy mo
 ### Cloning the Repository
 
 ```cmd
-git clone // ill add later
-cd Mini-Server
+git clone https://github.com/GAURAV-DEEP01/MiniServer.git
+cd MiniServer
 ```
 
 ### Building the Project
