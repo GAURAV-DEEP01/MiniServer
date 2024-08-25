@@ -33,7 +33,7 @@ int main()
     app.routeGet["/"] = [](Request &req, Response &res) -> int
     {
         res.setContentType("text/html");
-        res.writeToBody("<h1>Hello from Server!<h1>");
+        res.send("<h1>Hello from Server!<h1>");
         return 0;
     };
 

@@ -3,11 +3,24 @@
 #include "AppIncludes.hpp"
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
+
+typedef enum
+{
+    REQUEST_SAFE_STATE,
+    REQUEST_LIMIT_EXCEEDED,
+    REQUEST_PROCESSING_ERROR,
+    REQUEST_HEADER_PARSE_ERROR,
+    REQUEST_SERVICE_ERROR,
+    REQUEST_RECIEVE_FAILED,
+    REQUEST_TIMEOUT_OR_FAILED,
+    REQUEST_CONNECTION_CLOSED
+} REQUESTCONST;
+
 class RequestHandler
 {
 private:
     const int maxRequest = 100;
-    const int maxTimout = 10000; // milliseconds
+    const int maxTimout = 15000; // milliseconds
     int handledRequests = 0;
 
     const SOCKET client_socket_fh;
@@ -49,19 +62,19 @@ private:
 
     // ill add detailed comments here later...
 
-    // Checks the header if connection is set to keep alive
+    // Checks the header if Connection header exists and if Connection is set to keep alive
     bool isConnectionKeepAlive();
 
-    // recv is invoked here
-    bool startReciving();
+    // recv() is invoked here
+    int startReciving();
 
     /*
-        send is invoked here
+        send() is invoked here
         headerData is stored in 'requestHeadersMap'
     */
     bool startSending();
 
-    // clears all streams and header map
+    // clears all streams and header map and increments the handledRequest counter
     bool clearOneReqResCycle();
 };
 

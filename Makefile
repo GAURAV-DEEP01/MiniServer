@@ -41,4 +41,4 @@ makeExe:
 	mkdir -p exe
 
 clear: 
-	rm -f exe/WebServer && rm -f exe/TestServer
+	rm -f exe/* 

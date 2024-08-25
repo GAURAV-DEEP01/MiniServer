@@ -8,7 +8,6 @@ int main()
     {
         res.setContentType("text/html");
         res.sendFile("../public/index.html");
-        res.setStatus(200);
         return 0;
     };
 
@@ -36,7 +35,7 @@ int main()
     server.routeGet["/status"] = [](Request &req, Response &res) -> int
     {
         res.setContentType("text/plain");
-        res.writeToBody("Server is up and running...");
+        res.send("Server is up and running...");
         return 0;
     };
 
@@ -54,10 +53,11 @@ int main()
         return 0;
     };
 
+    // query parameter handling demo
     server.routePost["/items?"] = [](Request &req, Response &res) -> int
     {
         res.setContentType("text/html");
-        res.writeToBody("<h1> id: " + req.getParameter("id") + "</h1>");
+        res.send("<h1> id: " + req.getParameter("id") + "</h1>");
         return 0;
     };
 

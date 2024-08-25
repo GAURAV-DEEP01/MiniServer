@@ -73,7 +73,6 @@ app.routeGet["/"] = [](Request &req, Response &res) -> int
 {
     res.setContentType("text/html");
     res.sendFile("index.html");
-    res.setStatus(200);
     return 0;
 };
 

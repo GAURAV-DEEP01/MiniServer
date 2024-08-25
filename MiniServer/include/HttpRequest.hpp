@@ -18,16 +18,17 @@ public:
     Request(std::unordered_map<std::string, std::string> &headerFields,
             std::stringstream &requestBodyStream);
 
-    // will add detailed comments lator... (or atleast hope so)
     std::string getMethod();
+    std::string getHost();
+
     std::string getUrl();
     std::string getBaseUrl();
     std::string getBaseRouteUrl();
+
     std::string getParameter(std::string key);
     std::stringstream &getBodyStream();
     std::string getHeaderField(std::string key);
     std::string getContentType();
-    std::string getHost();
 };
 
 #endif

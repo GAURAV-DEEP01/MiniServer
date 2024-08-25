@@ -16,6 +16,7 @@ RequestHandler::RequestHandler(
 
     size_t addressSize = sizeof(this->server_addr.sin_addr.S_un.S_addr);
     char bytes[addressSize];
+
     strncpy(bytes, (char *)&this->server_addr.sin_addr.S_un.S_addr, addressSize);
 
     for (int i = 0; i < 4; i++)
@@ -24,8 +25,15 @@ RequestHandler::RequestHandler(
         if (i != 4 - 1)
             ipString += ".";
     }
+    std::string ipPort = "IP: " + ipString + " and PORT: " + std::to_string(server_addr.sin_port);
 
-    handleReqRes();
+    int handleReqResStatus;
+    if ((handleReqResStatus = handleReqRes()) == REQUEST_PROCESSING_ERROR)
+        Logger::logs("Request handle failed," + ipPort);
+    else if (handleReqResStatus == REQUEST_LIMIT_EXCEEDED)
+        Logger::logs("Request's per connection limit exceeded, " + ipPort);
+    else if (handleReqResStatus == REQUEST_SERVICE_ERROR)
+        Logger::logs("Request service failed, " + ipPort);
 }
 
 RequestHandler::~RequestHandler()
@@ -34,6 +42,7 @@ RequestHandler::~RequestHandler()
                  ipString +
                  " and PORT: " +
                  std::to_string(this->server_addr.sin_port));
+
     shutdown(client_socket_fh, SD_BOTH);
     closesocket(client_socket_fh);
 }
@@ -42,25 +51,28 @@ int RequestHandler::handleReqRes()
 {
     while (maxRequest > handledRequests++)
     {
-        if (!startReciving())
-            break;
+        int recevingStatus;
+        if ((recevingStatus = startReciving()) == REQUEST_RECIEVE_FAILED)
+            return REQUEST_PROCESSING_ERROR;
+        if (recevingStatus == REQUEST_CONNECTION_CLOSED)
+            return REQUEST_SAFE_STATE;
 
         std::unique_ptr<Request> req = std::make_unique<Request>(requestHeadersMap, requestBodyStream);
         std::unique_ptr<Response> res = std::make_unique<Response>(responseBuffer);
 
-        // request response handle will be done here...
         if (service(*req, *res) < 0)
-            break;
+            return REQUEST_SERVICE_ERROR;
 
-        res->startWriter();
+        if (!res->_startWriter())
+            return REQUEST_PROCESSING_ERROR;
 
         if (!startSending())
-            break;
+            return REQUEST_PROCESSING_ERROR;
 
         if (!clearOneReqResCycle())
-            break;
+            return REQUEST_SAFE_STATE;
     }
-    return 0;
+    return REQUEST_LIMIT_EXCEEDED;
 }
 
 bool RequestHandler::isConnectionKeepAlive()
@@ -74,11 +86,11 @@ bool RequestHandler::isConnectionKeepAlive()
     return false;
 }
 
-bool RequestHandler::startReciving()
+int RequestHandler::startReciving()
 {
     bool isReadingHeader = true;
     std::stringstream *currentRequestStream = &requestHeaderStream;
-    char readBuffer[100];
+    char readBuffer[2048];
     size_t contentLength = INFINITE;
     while (true)
     {
@@ -86,14 +98,14 @@ bool RequestHandler::startReciving()
         size_t bytesRead;
         if ((bytesRead = recv(client_socket_fh, readBuffer, sizeof(readBuffer) - 1, 0)) == 0)
         {
-            return false;
+            return REQUEST_CONNECTION_CLOSED;
         }
         else if (bytesRead == INVALID_SOCKET)
         {
             Logger::logs("Connection Timeout or failed!, IP: " + ipString +
                          " and PORT: " +
                          std::to_string(this->server_addr.sin_port));
-            return false;
+            return REQUEST_TIMEOUT_OR_FAILED;
         }
         char *headerEndChar = strstr(readBuffer, "\r\n\r\n");
 
@@ -108,8 +120,8 @@ bool RequestHandler::startReciving()
             char *reqBodyStartChar = headerEndChar + 4;
             *currentRequestStream << reqBodyStartChar;
 
-            if ((contentLength = requestParserHeader()) == (size_t)-1)
-                return false;
+            if ((contentLength = requestParserHeader()) == REQUEST_HEADER_PARSE_ERROR)
+                return REQUEST_RECIEVE_FAILED;
 
             int diff = headerEndChar - readBuffer;
             contentLength -= bytesRead - (diff + 4);
@@ -126,7 +138,7 @@ bool RequestHandler::startReciving()
                 break;
         }
     }
-    return true;
+    return REQUEST_SAFE_STATE;
 }
 
 bool RequestHandler::startSending()
@@ -184,14 +196,14 @@ int RequestHandler::requestParserHeader()
     if (!requestHeaderStream.eof())
     {
         Logger::err("Couldn't parse header");
-        return -1;
+        return REQUEST_HEADER_PARSE_ERROR;
     }
     auto bodySize = requestHeadersMap.find("Content-Length");
     if (bodySize != requestHeadersMap.end())
     {
         return std::stoi(bodySize->second);
     }
-    return 0;
+    return REQUEST_SAFE_STATE;
 }
 
 bool RequestHandler::clearOneReqResCycle()

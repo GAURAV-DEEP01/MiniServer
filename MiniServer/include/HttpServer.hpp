@@ -5,12 +5,12 @@
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
 
-typedef enum SERVERCONST
+typedef enum
 {
     SERVER_ERROR = -1,
-    SAFE_EXIT = 0,
-    METHOD_NOT_FOUND = 1,
-    MIDDLEWARE_ERROR = 2
+    SERVER_SAFE_STATE = 0,
+    SERVER_ROUT_NOT_FOUND = 1,
+    SERVER_MIDDLEWARE_ERROR = 2
 } SERVERCONST;
 
 class HttpServer

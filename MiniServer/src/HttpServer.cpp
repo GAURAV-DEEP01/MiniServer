@@ -127,7 +127,7 @@ int HttpServer::service(Request &req, Response &res)
     std::string method = req.getMethod();
 
     int middleWareStatus = middleWare(req, res);
-    if ((middleWareStatus == MIDDLEWARE_ERROR) || (middleWareStatus == SERVER_ERROR))
+    if ((middleWareStatus == SERVER_ROUT_NOT_FOUND) || (middleWareStatus == SERVER_ERROR))
         return SERVER_ERROR;
 
     int servicesStatus;
@@ -144,7 +144,7 @@ int HttpServer::service(Request &req, Response &res)
     else
         servicesStatus = serveSPECIFIC(req, res);
 
-    if (servicesStatus == METHOD_NOT_FOUND)
+    if (servicesStatus == SERVER_ROUT_NOT_FOUND)
         defaultService(req, res);
     return servicesStatus;
 }
@@ -156,7 +156,7 @@ int HttpServer::route(
     auto foundMethod = route.find(req.getBaseRouteUrl());
     if (foundMethod != route.end())
         return foundMethod->second(req, res);
-    return METHOD_NOT_FOUND;
+    return SERVER_ROUT_NOT_FOUND;
 }
 
 // redesigned
@@ -195,8 +195,8 @@ void HttpServer::defaultService(Request &req, Response &res)
     res.setStatus(404);
     res.setReasonPhrase("NOT FOUND");
     res.setContentType("text/plain");
-    res.writeToBody("Host: " + req.getHost() + "\n");
-    res.writeToBody("URL: " + req.getUrl() + "\n");
-    res.writeToBody("METHOD: " + req.getMethod() + "\n");
-    res.writeToBody("Error: Route Not Found");
+    res.send("Host: " + req.getHost() + "\n");
+    res.send("URL: " + req.getUrl() + "\n");
+    res.send("METHOD: " + req.getMethod() + "\n");
+    res.send("Error: Route Not Found");
 }
