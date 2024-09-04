@@ -13,7 +13,7 @@ bool Response::_startWriter()
     if (!writeHeaders())
         return false;
 
-    if (isStringWrittenToBody)
+    if (isWriteStringToBodyMode)
     {
         if (!writeStringToBody())
             return false;
@@ -28,18 +28,21 @@ bool Response::_startWriter()
 bool Response::writeNecess()
 {
     responseStream << version << " " << status << " " << reasonPhrase << "\r\n";
-    headers["Server"] = "HTTPServer/1.0";
+    headers["Server"] = "MiniServer/1.0";
     headers["Date"] = getGMT();
 
-    if (isFileWrittenToBody)
+    if (isWriteFileToBodyMode)
     {
-        if ((contentLength = getFileSize()) == ULONG_MAX)
+        if ((contentLength = getFileSize()) == ULLONG_MAX)
             return false;
-        headers["Content-Length"] = std::to_string(contentLength);
+        responseBodySize = contentLength;
+        headers["Content-Length"] = std::to_string(responseBodySize);
     }
     else
-        headers["Content-Length"] = std::to_string(responseBodyStream.tellp());
-
+    {
+        responseBodySize = responseBodyStream.tellp();
+        headers["Content-Length"] = std::to_string(responseBodySize);
+    }
     setHeaderField("Connection", "keep-alive");
     setHeaderField("Keep-Alive", "timeout=10, max=100");
 
@@ -53,18 +56,18 @@ bool Response::writeHeaders()
         responseStream << headerKeyValue->first << ": " << headerKeyValue->second << "\r\n";
     responseStream << "\r\n";
 
-    std::streamsize size = responseStream.tellp();
-    if (size < 0)
+    size_t size = responseStream.tellp();
+    if (size == static_cast<size_t>(-1))
     {
-        Logger::err("Failed to determine stream size.");
+        Logger::err("Failed to determine response stream size.");
         return false;
     }
 
-    responseBuffer.resize(size);
-    responseStream.read((char *)responseBuffer.data(), responseBuffer.size());
+    responseBuffer.resize(size + responseBodySize);
+    responseStream.read((char *)responseBuffer.data(), size);
     if (!responseStream)
     {
-        Logger::err("response read failed");
+        Logger::err("Response read failed");
         return false;
     }
     return true;
@@ -72,12 +75,9 @@ bool Response::writeHeaders()
 
 bool Response::writeStringToBody()
 {
-    std::streamsize size = responseBodyStream.tellp();
-    std::streamsize responseHeaderSize = responseBuffer.size();
+    std::streamsize responseHeaderSize = responseStream.tellp();
 
-    responseBuffer.resize(responseHeaderSize + size);
-
-    responseBodyStream.read((char *)&responseBuffer[responseHeaderSize], size);
+    responseBodyStream.read((char *)&responseBuffer[responseHeaderSize], responseBodySize);
     if (!responseBodyStream)
     {
         Logger::err("Unable to write string to body");
@@ -88,56 +88,61 @@ bool Response::writeStringToBody()
 
 bool Response::writeFileToBody()
 {
-    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+    std::ifstream file(filePath, std::ios::binary);
     if (file.is_open())
     {
-        std::streamsize size = file.tellg();
-        file.seekg(0, std::ios::beg);
-
-        std::size_t responseHeaderSize = responseBuffer.size();
-        responseBuffer.resize(responseHeaderSize + size);
-
-        file.read((char *)&responseBuffer[responseHeaderSize], size);
+        size_t responseHeaderSize = responseStream.tellp();
+        if (responseHeaderSize == (size_t)-1)
+        {
+            Logger::err("Failed to determine response header size");
+            return false;
+        }
+        file.read((char *)&responseBuffer[responseHeaderSize], responseBodySize);
         if (!file)
         {
-            Logger::err("Unable to read file");
+            Logger::err("Unable to read file " + std::to_string(file.gcount()));
             file.close();
             return false;
         }
-    }
-    else
-    {
-        Logger::err("Couldn't open file " + filePath);
+
         file.close();
-        return false;
+        return true;
     }
+    Logger::err("Couldn't open file " + filePath);
     file.close();
-    return true;
+    return false;
 }
 
-void Response::send(std::string contentString)
+void Response::send(const std::string &contentString)
 {
-    if (isFileWrittenToBody)
+    if (isWriteFileToBodyMode)
         return;
 
     responseBodyStream << contentString;
-    isStringWrittenToBody = true;
+    isWriteStringToBodyMode = true;
 }
 
-bool Response::sendFile(std::string filePath)
+void Response::writeLine(const std::string &line)
 {
-    if (isFileWrittenToBody || isStringWrittenToBody)
-        return false;
+    if (isWriteFileToBodyMode)
+        return;
+    responseBodyStream << line << "\n";
+    isWriteStringToBodyMode = true;
+}
 
+bool Response::sendFile(const std::string &filePath)
+{
+    if (isWriteFileToBodyMode || isWriteStringToBodyMode)
+        return false;
+    if (!std::filesystem::exists(filePath))
+        return false;
     this->filePath = filePath;
-    isFileWrittenToBody = true;
+    isWriteFileToBodyMode = true;
 
-    if (!_startWriter())
-        return false;
     return true;
 }
 
-bool Response::addHeaderField(std::string key, std::string nextValue)
+bool Response::addHeaderField(const std::string &key, const std::string &nextValue)
 {
     auto foundField = headers.find(key);
     if (foundField == headers.end())
@@ -147,7 +152,7 @@ bool Response::addHeaderField(std::string key, std::string nextValue)
     return true;
 }
 
-bool Response::addHeaderFieldParam(std::string key, std::string parameter)
+bool Response::addHeaderFieldParam(const std::string &key, const std::string &parameter)
 {
     auto foundField = headers.find(key);
     if (foundField == headers.end())
@@ -162,24 +167,24 @@ void Response::setStatus(int statusCode)
     status = std::to_string(statusCode);
 }
 
-void Response::setContentType(std::string contentType)
+void Response::setContentType(const std::string &contentType)
 {
     headers["Content-Type"] = contentType;
 }
 
-void Response::setReasonPhrase(std::string reasonPhrase)
+void Response::setReasonPhrase(const std::string &reasonPhrase)
 {
     this->reasonPhrase = reasonPhrase;
 }
 
-void Response::setHeaderField(std::string key, std::string value)
+void Response::setHeaderField(const std::string &key, const std::string &value)
 {
     if (key == "Content-Type" || key == "Date" || key == "Server")
         return;
     headers[key] = value;
 }
 
-std::string Response::getGMT()
+std::string Response::getGMT() const
 {
     std::time_t now = std::time(nullptr);
     std::tm *gmtTime = std::gmtime(&now);
@@ -190,19 +195,28 @@ std::string Response::getGMT()
     return gmtimeStream.str();
 }
 
-size_t Response::getFileSize()
+size_t Response::getFileSize() const
 {
-    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
-
     if (!std::filesystem::exists(filePath))
     {
         Logger::err("File '" + filePath + "', Does not exitsts");
         return -1;
     }
+
+    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
     if (!file.is_open())
+    {
+        Logger::err("Could'nt open file " + filePath);
         return -1;
+    }
 
     std::streamsize size = file.tellg();
+    if (size < 0)
+    {
+        Logger::err("Unable to determine size of file " + filePath);
+        file.close();
+        return -1;
+    }
     file.close();
 
     return size;

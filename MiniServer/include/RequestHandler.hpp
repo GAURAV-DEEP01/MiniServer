@@ -1,5 +1,5 @@
-#ifndef REQUESTHANDLER_HPP
-#define REQUESTHANDLER_HPP
+#pragma once
+
 #include "AppIncludes.hpp"
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
@@ -9,31 +9,31 @@ typedef enum
     REQUEST_SAFE_STATE,
     REQUEST_LIMIT_EXCEEDED,
     REQUEST_PROCESSING_ERROR,
-    REQUEST_HEADER_PARSE_ERROR,
     REQUEST_SERVICE_ERROR,
     REQUEST_RECIEVE_FAILED,
-    REQUEST_TIMEOUT_OR_FAILED,
+    REQUEST_TIMEOUT,
+    REQUEST_RECV_FAILED,
     REQUEST_CONNECTION_CLOSED
-} REQUESTCONST;
+} RequestStatus;
 
 class RequestHandler
 {
 private:
     const int maxRequest = 100;
-    const int maxTimout = 15000; // milliseconds
+    const int maxTimout = 15000;
     int handledRequests = 0;
 
     const SOCKET client_socket_fh;
     const sockaddr_in server_addr;
-    std::string ipString;
+    const std::string ipString;
+
+    const std::function<int(Request &req, Response &res)> &service;
 
     std::stringstream requestHeaderStream;
     std::stringstream requestBodyStream;
     std::unordered_map<std::string, std::string> requestHeadersMap;
 
     std::vector<unsigned char> responseBuffer;
-
-    const std::function<int(Request &req, Response &res)> &service;
 
 public:
     /*
@@ -49,33 +49,24 @@ public:
 private:
     /*
         recieves request data and responds
-        invokes requestParserHeader() parses the header
+        invokes parseRequestHeaders() parses the header
         invokes service function passed from HttpServer
     */
     int handleReqRes();
 
     /*
-        Parses the request header and is stored in the reqmap
-        returns the 'Content-Length' from the header-field
+        Parsed request header is stored in the 'requestHeadersMap' and body in 'requestBodyStream' (this was a bad move i will change it later)
+        @returns: 'Content-Length' from the header-field, on error returns -1 casted to size_t
     */
-    int requestParserHeader();
+    int parseRequestHeaders();
 
-    // ill add detailed comments here later...
+    bool isConnectionKeepAlive() const;
 
-    // Checks the header if Connection header exists and if Connection is set to keep alive
-    bool isConnectionKeepAlive();
-
-    // recv() is invoked here
     int startReciving();
 
-    /*
-        send() is invoked here
-        headerData is stored in 'requestHeadersMap'
-    */
-    bool startSending();
+    bool startSending() const;
 
-    // clears all streams and header map and increments the handledRequest counter
     bool clearOneReqResCycle();
-};
 
-#endif
+    std::string assignIpStr() const;
+};

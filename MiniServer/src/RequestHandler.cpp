@@ -5,35 +5,34 @@ RequestHandler::RequestHandler(
     SOCKET client_socket_fh,
     sockaddr_in server_addr,
     const std::function<int(Request &req, Response &res)> &service)
-    : requestHeadersMap(),
-      client_socket_fh(client_socket_fh),
+    : client_socket_fh(client_socket_fh),
+      server_addr(server_addr),
+      ipString(assignIpStr()),
       service(service),
-      server_addr(server_addr)
+      requestHeadersMap()
 {
     setsockopt(client_socket_fh, SOL_SOCKET, SO_RCVTIMEO,
                (const char *)&maxTimout,
                sizeof(maxTimout));
 
-    size_t addressSize = sizeof(this->server_addr.sin_addr.S_un.S_addr);
-    char bytes[addressSize];
-
-    strncpy(bytes, (char *)&this->server_addr.sin_addr.S_un.S_addr, addressSize);
-
-    for (int i = 0; i < 4; i++)
-    {
-        ipString += std::to_string(bytes[i]);
-        if (i != 4 - 1)
-            ipString += ".";
-    }
     std::string ipPort = "IP: " + ipString + " and PORT: " + std::to_string(server_addr.sin_port);
 
-    int handleReqResStatus;
-    if ((handleReqResStatus = handleReqRes()) == REQUEST_PROCESSING_ERROR)
+    int handleReqResStatus = handleReqRes();
+    switch (handleReqResStatus)
+    {
+    case REQUEST_PROCESSING_ERROR:
         Logger::logs("Request handle failed," + ipPort);
-    else if (handleReqResStatus == REQUEST_LIMIT_EXCEEDED)
-        Logger::logs("Request's per connection limit exceeded, " + ipPort);
-    else if (handleReqResStatus == REQUEST_SERVICE_ERROR)
+        break;
+    case REQUEST_LIMIT_EXCEEDED:
+        Logger::logs("Request's-per-connection limit  exceeded, " + ipPort);
+        break;
+    case REQUEST_SERVICE_ERROR:
         Logger::logs("Request service failed, " + ipPort);
+        break;
+    case REQUEST_RECV_FAILED:
+        Logger::logs("Request 'recv()' failed, " + ipPort);
+        break;
+    }
 }
 
 RequestHandler::~RequestHandler()
@@ -51,11 +50,13 @@ int RequestHandler::handleReqRes()
 {
     while (maxRequest > handledRequests++)
     {
-        int recevingStatus;
-        if ((recevingStatus = startReciving()) == REQUEST_RECIEVE_FAILED)
+        int recevingStatus = startReciving();
+        if (recevingStatus == REQUEST_RECIEVE_FAILED)
             return REQUEST_PROCESSING_ERROR;
         if (recevingStatus == REQUEST_CONNECTION_CLOSED)
             return REQUEST_SAFE_STATE;
+        if (recevingStatus == REQUEST_RECV_FAILED)
+            return recevingStatus;
 
         std::unique_ptr<Request> req = std::make_unique<Request>(requestHeadersMap, requestBodyStream);
         std::unique_ptr<Response> res = std::make_unique<Response>(responseBuffer);
@@ -75,7 +76,7 @@ int RequestHandler::handleReqRes()
     return REQUEST_LIMIT_EXCEEDED;
 }
 
-bool RequestHandler::isConnectionKeepAlive()
+bool RequestHandler::isConnectionKeepAlive() const
 {
     std::string connectionKey = "Connection";
     auto connection = requestHeadersMap.find(connectionKey);
@@ -100,12 +101,15 @@ int RequestHandler::startReciving()
         {
             return REQUEST_CONNECTION_CLOSED;
         }
-        else if (bytesRead == INVALID_SOCKET)
+        if (bytesRead == INVALID_SOCKET)
         {
-            Logger::logs("Connection Timeout or failed!, IP: " + ipString +
+            bool isTimeout;
+            std::string statusMsg = ((isTimeout = (WSAGetLastError()) == WSAETIMEDOUT) ? true : false) ? "Timeout" : "Failed";
+            Logger::logs("Connection " + statusMsg + "!, IP: " + ipString +
                          " and PORT: " +
                          std::to_string(this->server_addr.sin_port));
-            return REQUEST_TIMEOUT_OR_FAILED;
+
+            return isTimeout ? REQUEST_TIMEOUT : REQUEST_RECV_FAILED;
         }
         char *headerEndChar = strstr(readBuffer, "\r\n\r\n");
 
@@ -119,8 +123,7 @@ int RequestHandler::startReciving()
 
             char *reqBodyStartChar = headerEndChar + 4;
             *currentRequestStream << reqBodyStartChar;
-
-            if ((contentLength = requestParserHeader()) == REQUEST_HEADER_PARSE_ERROR)
+            if ((contentLength = parseRequestHeaders()) == static_cast<size_t>(-1))
                 return REQUEST_RECIEVE_FAILED;
 
             int diff = headerEndChar - readBuffer;
@@ -141,7 +144,7 @@ int RequestHandler::startReciving()
     return REQUEST_SAFE_STATE;
 }
 
-bool RequestHandler::startSending()
+bool RequestHandler::startSending() const
 {
     int bytesSent = send(client_socket_fh, (char *)responseBuffer.data(), responseBuffer.size(), 0);
     if (bytesSent == SOCKET_ERROR)
@@ -169,7 +172,7 @@ static std::string trim(const std::string &s)
     return (start == std::string::npos) ? "" : s.substr(start, end - start + 1);
 }
 
-int RequestHandler::requestParserHeader()
+int RequestHandler::parseRequestHeaders()
 {
     std::string key;
     std::string value;
@@ -196,7 +199,7 @@ int RequestHandler::requestParserHeader()
     if (!requestHeaderStream.eof())
     {
         Logger::err("Couldn't parse header");
-        return REQUEST_HEADER_PARSE_ERROR;
+        return -1;
     }
     auto bodySize = requestHeadersMap.find("Content-Length");
     if (bodySize != requestHeadersMap.end())
@@ -222,4 +225,20 @@ bool RequestHandler::clearOneReqResCycle()
 
     handledRequests++;
     return true;
+}
+
+std::string RequestHandler::assignIpStr() const
+{
+    size_t addressSize = sizeof(server_addr.sin_addr.S_un.S_addr);
+    char bytes[addressSize];
+
+    strncpy(bytes, (char *)&server_addr.sin_addr.S_un.S_addr, addressSize);
+    std::string ipStr;
+    for (int i = 0; i < 4; i++)
+    {
+        ipStr += std::to_string(bytes[i]);
+        if (i != 4 - 1)
+            ipStr += ".";
+    }
+    return ipStr;
 }

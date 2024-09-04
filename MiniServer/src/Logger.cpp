@@ -4,7 +4,7 @@ static std::mutex loggerAccess;
 
 namespace Logger
 {
-    void err(std::string errMsg, SOCKET socket_fh)
+    void err(const std::string &errMsg, SOCKET socket_fh)
     {
         loggerAccess.lock();
         std::cerr << "Error: " << errMsg << "!" << std::endl;
@@ -14,12 +14,12 @@ namespace Logger
         loggerAccess.unlock();
     }
 
-    void status(std::string statusMsg)
+    void status(const std::string &statusMsg)
     {
         std::cout << statusMsg << "..." << std::endl;
     }
 
-    void info(std::string infoMsg)
+    void info(const std::string &infoMsg)
     {
         loggerAccess.lock();
         std::cout << "\n\nINFO: ---------------\n\n"
@@ -29,9 +29,8 @@ namespace Logger
         loggerAccess.unlock();
     }
 
-    void logs(std::string log)
+    void logs(const std::string &log)
     {
-        loggerAccess.lock();
         time_t curr_time;
         struct tm *curr_tm;
         char time_string[100];
@@ -39,6 +38,7 @@ namespace Logger
         curr_tm = localtime(&curr_time);
         strftime(time_string, sizeof(time_string), "%Y-%m-%d %H:%M:%S", curr_tm);
 
+        loggerAccess.lock();
         std::clog << "{ '" << log << "', time: " << time_string << " }" << std::endl;
         loggerAccess.unlock();
     }

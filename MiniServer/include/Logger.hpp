@@ -1,5 +1,4 @@
-#ifndef LOGGER_CPP
-#define LOGGER_CPP
+#pragma once
 
 #ifdef ENABLE_LOGGER_INFO
 #define INFO(message) Logger::info(message)
@@ -16,13 +15,13 @@ namespace Logger
         Error: msg
         Error code: WSA LAST ERROR CODE
     */
-    void err(std::string errMsg, SOCKET socket_fh = INVALID_SOCKET);
+    void err(const std::string &errMsg, SOCKET socket_fh = INVALID_SOCKET);
 
     /*
         Prints status
         msg...
     */
-    void status(std::string statusMsg);
+    void status(const std::string &statusMsg);
 
     /*
         Prints info msg
@@ -30,10 +29,8 @@ namespace Logger
         msg
         -----------------------------
     */
-    void info(std::string infoMsg);
+    void info(const std::string &infoMsg);
 
     // connection logs { msg : time }
-    void logs(std::string log);
+    void logs(const std::string &log);
 }
-
-#endif

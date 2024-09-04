@@ -1,5 +1,4 @@
-#ifndef HTTP_SERVER_H
-#define HTTP_SERVER_H
+#pragma once
 
 #include "AppIncludes.hpp"
 #include "HttpRequest.hpp"
@@ -9,9 +8,9 @@ typedef enum
 {
     SERVER_ERROR = -1,
     SERVER_SAFE_STATE = 0,
-    SERVER_ROUT_NOT_FOUND = 1,
-    SERVER_MIDDLEWARE_ERROR = 2
-} SERVERCONST;
+    SERVER_ROUT_NOT_FOUND,
+    SERVER_MIDDLEWARE_ERROR
+} ServerStatus;
 
 class HttpServer
 {
@@ -44,10 +43,12 @@ protected:
     virtual int serveSPECIFIC(Request &req, Response &res);
 
     // override this method if you want to serve not found response
-    void defaultService(Request &req, Response &res);
+    virtual int defaultService(Request &req, Response &res);
 
 public:
-    // initializing server with defauld port 23000
+    std::atomic<int> currentThreadCount;
+    std::atomic<int> clientsServed;
+
     HttpServer();
 
     /*
@@ -57,7 +58,10 @@ public:
     */
     void listen(short port);
 
-    // this method is invoked before the route methods
+    /*
+        this method is invoked before any of the route methods, so general request pre-processing can be done
+        for route specific middleware there is no current solution except for pre-processing request at the start of each route method
+    */
     std::function<int(Request &req, Response &res)> middleWare;
 
     /*
@@ -66,7 +70,7 @@ public:
 
         @return:
         return 0 if no errors
-        return -1 or SERVER_ERROR to close the connection and discard the request2
+        return -1 or SERVER_ERROR to close the connection and discard the request
     */
     std::unordered_map<std::string, std::function<int(Request &, Response &)>> routeGet;
     std::unordered_map<std::string, std::function<int(Request &, Response &)>> routePost;
@@ -96,5 +100,3 @@ private:
 
     int route(Request &req, Response &res, std::unordered_map<std::string, std::function<int(Request &, Response &)>> &route);
 };
-
-#endif

@@ -8,7 +8,7 @@ Include the MiniServer header file
 #include "miniserver.hpp"
 ```
 
-In the main create an instance of the HttpServer and listen on a port after all your route defintions
+In the main, Create an instance of the HttpServer and listen on a port after all your route defintions
 
 ```cpp
 int main(){
@@ -60,10 +60,10 @@ If the compilation is successfull you can execute the program
 miniserver
 ```
 
-And done now your server is listening to the port 9090 go to your browser or any tool and search `localhost:9090`
+And done!, Now your server is listening to the port 9090 go to your browser or any tool and search `localhost:9090`
 
 ![Localhost image](images/browser.png)
 
-You can view the connection make by the clients through the logs
+You can view the connection made by the clients through the logs
 
 ![Mini Server Logs](images/logs.png)

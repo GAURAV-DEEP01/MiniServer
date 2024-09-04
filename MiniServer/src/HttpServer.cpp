@@ -4,13 +4,16 @@
 #include "../include/HttpRequest.hpp"
 #include "../include/HttpResponse.hpp"
 
-HttpServer::HttpServer() : port(PORT) {}
+HttpServer::HttpServer()
+    : port(PORT),
+      currentThreadCount(0),
+      clientsServed(0) {}
 
 void HttpServer::listen(short port)
 {
     middleWare = [](Request &req, Response &res) -> int
     {
-        return 0;
+        return SERVER_SAFE_STATE;
     };
     this->port = port;
     if (this->initTCPconnection() < 0)
@@ -26,42 +29,41 @@ int HttpServer::initTCPconnection()
     {
         Logger::err("WSA Startup failed");
         WSACleanup();
-        return -1;
+        return SERVER_ERROR;
     }
     Logger::status("Wsa StartUp successful");
 
-    if ((this->server_socket_fh = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+    if ((server_socket_fh = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
     {
-        Logger::err("Socket creation failed", this->server_socket_fh);
+        Logger::err("Socket creation failed", server_socket_fh);
         WSACleanup();
-        return -1;
+        return SERVER_ERROR;
     }
     Logger::status("Socket created");
 
-    this->server_addr.sin_family = AF_INET;
-    this->server_addr.sin_port = htons(port);
-    this->server_addr.sin_addr.S_un.S_addr = inet_addr(SERVER_ADDRESS);
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(port);
+    server_addr.sin_addr.S_un.S_addr = inet_addr(SERVER_ADDRESS);
 
-    if (bind(this->server_socket_fh, (struct sockaddr *)&this->server_addr, sizeof(this->server_addr)) < 0)
+    if (bind(server_socket_fh, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
     {
-        Logger::err("Binding failed", this->server_socket_fh);
+        Logger::err("Binding failed", server_socket_fh);
         WSACleanup();
-        return -1;
+        return SERVER_ERROR;
     }
     Logger::status("Binding successful");
 
-    if (::listen(this->server_socket_fh, 50) < 0)
+    if (::listen(server_socket_fh, 50) < 0)
     {
-        Logger::err("Listening failed", this->server_socket_fh);
+        Logger::err("Listening failed", server_socket_fh);
         WSACleanup();
-        return -1;
+        return SERVER_ERROR;
     }
-    Logger::status("Server is listening to Port '" + std::to_string(this->port) + "'");
+    Logger::status("Server is listening to Port '" + std::to_string(port) + "'");
 
-    // acceptor
     std::thread acceptorWorker(HttpServer::requestAcceptor, this);
     acceptorWorker.join();
-    return 0;
+    return SERVER_SAFE_STATE;
 }
 
 int HttpServer::requestAcceptor()
@@ -71,16 +73,16 @@ int HttpServer::requestAcceptor()
         while (true)
         {
             SOCKET client_socket_fh;
-            server_addr_len = sizeof(this->server_addr);
-            if ((client_socket_fh = accept(this->server_socket_fh, (sockaddr *)&this->server_addr, &server_addr_len)) == INVALID_SOCKET)
+            server_addr_len = sizeof(server_addr);
+            if ((client_socket_fh = accept(server_socket_fh, (sockaddr *)&server_addr, &server_addr_len)) == INVALID_SOCKET)
             {
                 Logger::err("Couldn't accept request INVALID SOCKET");
             }
             else
             {
-                size_t addressSize = sizeof(this->server_addr.sin_addr.S_un.S_addr);
+                size_t addressSize = sizeof(server_addr.sin_addr.S_un.S_addr);
                 char bytes[addressSize];
-                strncpy(bytes, (char *)&this->server_addr.sin_addr.S_un.S_addr, addressSize);
+                strncpy(bytes, (char *)&server_addr.sin_addr.S_un.S_addr, addressSize);
 
                 std::string ipString;
                 for (int i = 0; i < 4; i++)
@@ -90,10 +92,19 @@ int HttpServer::requestAcceptor()
                         ipString += ".";
                 }
 
-                Logger::logs("User connected with IP: " + ipString + " and PORT: " + std::to_string(this->server_addr.sin_port));
+                Logger::logs("User connected with IP: " + ipString + " and PORT: " + std::to_string(server_addr.sin_port));
 
-                std::thread reqHandleWorker(HttpServer::reqInstantiator, this, client_socket_fh, server_addr);
-                reqHandleWorker.detach();
+                clientsServed.fetch_add(1, std::memory_order_relaxed);
+                currentThreadCount.fetch_add(1, std::memory_order_relaxed);
+                try
+                {
+                    std::thread reqHandleWorker(HttpServer::reqInstantiator, this, client_socket_fh, server_addr);
+                    reqHandleWorker.detach();
+                }
+                catch (const std::exception &e)
+                {
+                    Logger::err("Request handler thread creation failed" + std::string(e.what()));
+                }
             }
         }
     }
@@ -108,26 +119,32 @@ int HttpServer::requestAcceptor()
 
 int HttpServer::reqInstantiator(SOCKET client_socket_fh, sockaddr_in server_addr)
 {
-    RequestHandler *client = new RequestHandler(
-        client_socket_fh,
-        server_addr,
-        std::bind(&HttpServer::service,
-                  this,
-                  std::placeholders::_1,
-                  std::placeholders::_2)
+    try
+    {
+        std::unique_ptr<RequestHandler> client = std::make_unique<RequestHandler>(
+            client_socket_fh,
+            server_addr,
+            std::bind(&HttpServer::service,
+                      this,
+                      std::placeholders::_1,
+                      std::placeholders::_2)
 
-    );
-
-    delete client;
+        );
+    }
+    catch (std::exception &e)
+    {
+        Logger::err("Request handler failed" + std::string(e.what()));
+    }
+    currentThreadCount.fetch_sub(1, std::memory_order_relaxed);
     return 0;
 }
 
 int HttpServer::service(Request &req, Response &res)
 {
-    std::string method = req.getMethod();
+    const std::string method = req.getMethod();
 
-    int middleWareStatus = middleWare(req, res);
-    if ((middleWareStatus == SERVER_ROUT_NOT_FOUND) || (middleWareStatus == SERVER_ERROR))
+    const int middleWareStatus = middleWare(req, res);
+    if ((middleWareStatus != SERVER_SAFE_STATE))
         return SERVER_ERROR;
 
     int servicesStatus;
@@ -145,7 +162,7 @@ int HttpServer::service(Request &req, Response &res)
         servicesStatus = serveSPECIFIC(req, res);
 
     if (servicesStatus == SERVER_ROUT_NOT_FOUND)
-        defaultService(req, res);
+        servicesStatus = defaultService(req, res);
     return servicesStatus;
 }
 
@@ -153,7 +170,7 @@ int HttpServer::route(
     Request &req, Response &res,
     std::unordered_map<std::string, std::function<int(Request &, Response &)>> &route)
 {
-    auto foundMethod = route.find(req.getBaseRouteUrl());
+    const auto foundMethod = route.find(req.getBaseRouteUrl());
     if (foundMethod != route.end())
         return foundMethod->second(req, res);
     return SERVER_ROUT_NOT_FOUND;
@@ -190,13 +207,14 @@ int HttpServer::serveSPECIFIC(Request &req, Response &res)
 }
 
 // override this method to route NOT FOUND pages
-void HttpServer::defaultService(Request &req, Response &res)
+int HttpServer::defaultService(Request &req, Response &res)
 {
     res.setStatus(404);
     res.setReasonPhrase("NOT FOUND");
     res.setContentType("text/plain");
-    res.send("Host: " + req.getHost() + "\n");
-    res.send("URL: " + req.getUrl() + "\n");
-    res.send("METHOD: " + req.getMethod() + "\n");
-    res.send("Error: Route Not Found");
+    res.writeLine("Host: " + req.getHost());
+    res.writeLine("URL: " + req.getUrl());
+    res.writeLine("METHOD: " + req.getMethod());
+    res.writeLine("Error: Route Not Found");
+    return SERVER_SAFE_STATE;
 }

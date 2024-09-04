@@ -2,16 +2,23 @@
 #include "../include/Logger.hpp"
 
 Request::Request(
-    std::unordered_map<std::string, std::string> &headerFields,
-    std::stringstream &requestBodyStream)
-    : headerFields(headerFields), requestBodyStream(requestBodyStream)
+    const std::unordered_map<std::string, std::string> &headerFields,
+    const std::stringstream &requestBodyStream)
+    : headerFields(headerFields),
+      requestBodyStream(requestBodyStream)
 {
-    std::string url = getHeaderField("Url");
-    std::size_t idx = url.find('?');
+    queryParams = assignQueryParams();
+}
+
+std::unordered_map<std::string, std::string> Request::assignQueryParams()
+{
+    std::unordered_map<std::string, std::string> queryParameters;
+    std::string url = getUrl();
+    size_t idx = url.find('?');
     if (idx == std::string::npos)
     {
-        routeUrl = url;
         baseUrl = url;
+        routeUrl = url;
     }
     else
     {
@@ -24,32 +31,31 @@ Request::Request(
         while (std::getline(queryParamStream, key, '='))
         {
             std::getline(queryParamStream, value, '&');
-            queryParams[key] = value;
+            queryParameters[key] = value;
         }
     }
+    return queryParameters;
 }
-
-// optimizing this later
-std::string Request::getMethod()
+std::string Request::getMethod() const
 {
     return getHeaderField("Method");
 }
 
-std::string Request::getUrl()
+std::string Request::getUrl() const
 {
     return getHeaderField("Url");
 }
 
-std::string Request::getBaseRouteUrl()
+std::string Request::getBaseRouteUrl() const
 {
     return routeUrl;
 }
-std::string Request::getBaseUrl()
+std::string Request::getBaseUrl() const
 {
     return baseUrl;
 }
 
-std::string Request::getParameter(std::string key)
+std::string Request::getParameter(const std::string &key) const
 {
     auto foundParam = queryParams.find(key);
     if (foundParam == queryParams.end())
@@ -57,20 +63,20 @@ std::string Request::getParameter(std::string key)
     return foundParam->second;
 }
 
-std::stringstream &Request::getBodyStream() { return requestBodyStream; }
+const std::stringstream &Request::getBodyStream() const { return requestBodyStream; }
 
-std::string Request::getHeaderField(std::string key)
+std::string Request::getHeaderField(const std::string &key) const
 {
     auto foundField = headerFields.find(key);
     if (foundField == headerFields.end())
         return "";
     return foundField->second;
 }
-std::string Request::getContentType()
+std::string Request::getContentType() const
 {
     return getHeaderField("Content-Type");
 }
-std::string Request::getHost()
+std::string Request::getHost() const
 {
     return getHeaderField("Host");
 }

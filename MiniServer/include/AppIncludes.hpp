@@ -1,5 +1,4 @@
-#ifndef APPINCLUDES_HPP
-#define APPINCLUDES_HPP
+#pragma once
 
 #include <iostream>
 #include <iomanip>
@@ -23,5 +22,3 @@
 
 #define PORT 23000
 #define SERVER_ADDRESS " "
-
-#endif
