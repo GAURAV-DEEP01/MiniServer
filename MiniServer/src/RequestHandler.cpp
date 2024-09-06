@@ -17,7 +17,7 @@ RequestHandler::RequestHandler(
 
     std::string ipPort = "IP: " + ipString + " and PORT: " + std::to_string(server_addr.sin_port);
 
-    int handleReqResStatus = handleReqRes();
+    const int handleReqResStatus = handleReqRes();
     switch (handleReqResStatus)
     {
     case REQUEST_PROCESSING_ERROR:
@@ -50,7 +50,7 @@ int RequestHandler::handleReqRes()
 {
     while (maxRequest > handledRequests++)
     {
-        int recevingStatus = startReciving();
+        const int recevingStatus = startReceiving();
         if (recevingStatus == REQUEST_RECIEVE_FAILED)
             return REQUEST_PROCESSING_ERROR;
         if (recevingStatus == REQUEST_CONNECTION_CLOSED)
@@ -58,7 +58,7 @@ int RequestHandler::handleReqRes()
         if (recevingStatus == REQUEST_RECV_FAILED)
             return recevingStatus;
 
-        std::unique_ptr<Request> req = std::make_unique<Request>(requestHeadersMap, requestBodyStream);
+        std::unique_ptr<Request> req = std::make_unique<Request>(requestHeadersMap, requestBodyBuffer);
         std::unique_ptr<Response> res = std::make_unique<Response>(responseBuffer);
 
         if (service(*req, *res) < 0)
@@ -79,18 +79,17 @@ int RequestHandler::handleReqRes()
 bool RequestHandler::isConnectionKeepAlive() const
 {
     std::string connectionKey = "Connection";
-    auto connection = requestHeadersMap.find(connectionKey);
+    const auto connection = requestHeadersMap.find(connectionKey);
 
-    if (connection != requestHeadersMap.end() && connection->second == "keep-alive")
+    if ((connection != requestHeadersMap.end()) && (connection->second == "keep-alive"))
         return true;
 
     return false;
 }
 
-int RequestHandler::startReciving()
+int RequestHandler::startReceiving()
 {
     bool isReadingHeader = true;
-    std::stringstream *currentRequestStream = &requestHeaderStream;
     char readBuffer[2048];
     size_t contentLength = INFINITE;
     while (true)
@@ -118,25 +117,31 @@ int RequestHandler::startReciving()
             isReadingHeader = false;
             *headerEndChar = '\0';
 
-            *currentRequestStream << readBuffer;
-            currentRequestStream = &requestBodyStream;
+            requestHeaderStream << readBuffer;
 
-            char *reqBodyStartChar = headerEndChar + 4;
-            *currentRequestStream << reqBodyStartChar;
+            const char *reqBodyStartChar = headerEndChar + 4;
+            const size_t bodyBufferSize = bytesRead - ((reqBodyStartChar - readBuffer) / sizeof(char));
+
+            requestBodyBuffer.assign(reqBodyStartChar, (reqBodyStartChar + bodyBufferSize));
             if ((contentLength = parseRequestHeaders()) == static_cast<size_t>(-1))
                 return REQUEST_RECIEVE_FAILED;
 
-            int diff = headerEndChar - readBuffer;
+            const size_t diff = headerEndChar - readBuffer;
             contentLength -= bytesRead - (diff + 4);
             if (contentLength == 0)
                 break;
         }
         else
         {
-            *currentRequestStream << readBuffer;
             if (!isReadingHeader)
+            {
                 contentLength -= bytesRead;
-
+                requestBodyBuffer.assign(readBuffer, readBuffer + bytesRead);
+            }
+            else
+            {
+                requestHeaderStream << readBuffer;
+            }
             if (contentLength <= 0)
                 break;
         }
@@ -146,7 +151,7 @@ int RequestHandler::startReciving()
 
 bool RequestHandler::startSending() const
 {
-    int bytesSent = send(client_socket_fh, (char *)responseBuffer.data(), responseBuffer.size(), 0);
+    const int bytesSent = send(client_socket_fh, (char *)responseBuffer.data(), responseBuffer.size(), 0);
     if (bytesSent == SOCKET_ERROR)
     {
         Logger::err("Send failed," +
@@ -167,8 +172,8 @@ bool RequestHandler::startSending() const
 
 static std::string trim(const std::string &s)
 {
-    size_t start = s.find_first_not_of(" \t\r\n");
-    size_t end = s.find_last_not_of(" \t\r\n");
+    const size_t start = s.find_first_not_of(" \t\r\n");
+    const size_t end = s.find_last_not_of(" \t\r\n");
     return (start == std::string::npos) ? "" : s.substr(start, end - start + 1);
 }
 

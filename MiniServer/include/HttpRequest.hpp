@@ -6,7 +6,7 @@ class Request
 {
 private:
     const std::unordered_map<std::string, std::string> &headerFields;
-    const std::stringstream &requestBodyStream;
+    const std::vector<unsigned char> &requestBodyBuffer;
     std::unordered_map<std::string, std::string> queryParams;
 
     std::string routeUrl;
@@ -16,7 +16,7 @@ private:
 
 public:
     Request(const std::unordered_map<std::string, std::string> &headerFields,
-            const std::stringstream &requestBodyStream);
+            const std::vector<unsigned char> &requestBodyBuffer);
 
     std::string getMethod() const;
     std::string getHost() const;
@@ -26,7 +26,7 @@ public:
     std::string getBaseRouteUrl() const;
 
     std::string getParameter(const std::string &key) const;
-    const std::stringstream &getBodyStream() const;
+    const std::vector<unsigned char> &getBody() const;
     std::string getHeaderField(const std::string &key) const;
     std::string getContentType() const;
 };

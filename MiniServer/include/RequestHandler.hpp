@@ -31,6 +31,7 @@ private:
 
     std::stringstream requestHeaderStream;
     std::stringstream requestBodyStream;
+    std::vector<unsigned char> requestBodyBuffer;
     std::unordered_map<std::string, std::string> requestHeadersMap;
 
     std::vector<unsigned char> responseBuffer;
@@ -55,14 +56,14 @@ private:
     int handleReqRes();
 
     /*
-        Parsed request header is stored in the 'requestHeadersMap' and body in 'requestBodyStream' (this was a bad move i will change it later)
+        Parsed request header is stored in the 'requestHeadersMap' and body in 'requstbodyBuffer' (Fixed it)
         @returns: 'Content-Length' from the header-field, on error returns -1 casted to size_t
     */
     int parseRequestHeaders();
 
     bool isConnectionKeepAlive() const;
 
-    int startReciving();
+    int startReceiving();
 
     bool startSending() const;
 

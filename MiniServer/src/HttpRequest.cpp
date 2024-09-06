@@ -3,9 +3,9 @@
 
 Request::Request(
     const std::unordered_map<std::string, std::string> &headerFields,
-    const std::stringstream &requestBodyStream)
+    const std::vector<unsigned char> &requestBodyBuffer)
     : headerFields(headerFields),
-      requestBodyStream(requestBodyStream)
+      requestBodyBuffer(requestBodyBuffer)
 {
     queryParams = assignQueryParams();
 }
@@ -63,7 +63,7 @@ std::string Request::getParameter(const std::string &key) const
     return foundParam->second;
 }
 
-const std::stringstream &Request::getBodyStream() const { return requestBodyStream; }
+const std::vector<unsigned char> &Request::getBody() const { return requestBodyBuffer; }
 
 std::string Request::getHeaderField(const std::string &key) const
 {

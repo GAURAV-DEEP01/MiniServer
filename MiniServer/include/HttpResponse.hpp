@@ -5,7 +5,6 @@
 class Response
 {
 private:
-    // status line
     std::string version = "HTTP/1.1";
     std::string status = "200";
     std::string reasonPhrase = "OK";
