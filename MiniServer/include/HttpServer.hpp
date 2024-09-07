@@ -7,7 +7,7 @@
 typedef enum
 {
     SERVER_ERROR = -1,
-    SERVER_SAFE_STATE = 0,
+    SERVER_SAFE_STATE,
     SERVER_ROUT_NOT_FOUND,
     SERVER_MIDDLEWARE_ERROR
 } ServerStatus;
@@ -45,6 +45,13 @@ protected:
     // override this method if you want to serve not found response
     virtual int defaultService(Request &req, Response &res);
 
+    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routeGet;
+    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routePost;
+    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routePut;
+    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routePatch;
+    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routeDelete;
+    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routeSpecific;
+
 public:
     std::atomic<int> currentThreadCount;
     std::atomic<int> clientsServed;
@@ -65,19 +72,20 @@ public:
     std::function<int(Request &req, Response &res)> middleWare;
 
     /*
-        @brief:
-        these are used for routes each umap routes their methods
-
-        @return:
+        @brief: 
+        In the handler method 
         return 0 if no errors
         return -1 or SERVER_ERROR to close the connection and discard the request
+
+        @return: false if route already exists, true if it does not
     */
-    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routeGet;
-    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routePost;
-    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routePut;
-    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routePatch;
-    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routeDelete;
-    std::unordered_map<std::string, std::function<int(Request &, Response &)>> routeSpecific;
+
+    bool Get(const std::string &path, const std::function<int(Request &, Response &)> &handler);
+    bool Put(const std::string &path, const std::function<int(Request &, Response &)> &handler);
+    bool Post(const std::string &path, const std::function<int(Request &, Response &)> &handler);
+    bool Patch(const std::string &path, const std::function<int(Request &, Response &)> &handler);
+    bool Delete(const std::string &path, const std::function<int(Request &, Response &)> &handler);
+    bool Specific(const std::string &path, const std::function<int(Request &, Response &)> &handler);
 
 private:
     /*
@@ -98,5 +106,7 @@ private:
     */
     int reqInstantiator(SOCKET client_socket_fh, sockaddr_in server_addr);
 
-    int route(Request &req, Response &res, std::unordered_map<std::string, std::function<int(Request &, Response &)>> &route);
+    int route(Request &req, Response &res, std::unordered_map<std::string, std::function<int(Request &, Response &)>> &handler);
+
+    bool checkValidity(const std::string &path, const std::unordered_map<std::string, std::function<int(Request &, Response &)>> &handler) const;
 };

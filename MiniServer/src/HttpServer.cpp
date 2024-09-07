@@ -11,7 +11,7 @@ HttpServer::HttpServer()
 
 void HttpServer::listen(short port)
 {
-    middleWare = [](Request &req, Response &res) -> int
+    middleWare = [](Request &, Response &) -> int
     {
         return SERVER_SAFE_STATE;
     };
@@ -217,4 +217,58 @@ int HttpServer::defaultService(Request &req, Response &res)
     res.writeLine("METHOD: " + req.getMethod());
     res.writeLine("Error: Route Not Found");
     return SERVER_SAFE_STATE;
+}
+
+bool HttpServer::Get(const std::string &path, const std::function<int(Request &, Response &)> &handler)
+{
+    if (!checkValidity(path, routeGet))
+        return false;
+    routeGet[path] = handler;
+    return true;
+}
+
+bool HttpServer::Put(const std::string &path, const std::function<int(Request &, Response &)> &handler)
+{
+    if (!checkValidity(path, routePut))
+        return false;
+    routePut[path] = handler;
+    return true;
+}
+bool HttpServer::Post(const std::string &path, const std::function<int(Request &, Response &)> &handler)
+{
+    if (!checkValidity(path, routePost))
+        return false;
+    routePost[path] = handler;
+    return true;
+}
+bool HttpServer::Patch(const std::string &path, const std::function<int(Request &, Response &)> &handler)
+{
+    if (!checkValidity(path, routePatch))
+        return false;
+    routePatch[path] = handler;
+    return true;
+}
+bool HttpServer::Delete(const std::string &path, const std::function<int(Request &, Response &)> &handler)
+{
+    if (!checkValidity(path, routeDelete))
+        return false;
+    routeDelete[path] = handler;
+    return true;
+}
+bool HttpServer::Specific(const std::string &path, const std::function<int(Request &, Response &)> &handler)
+{
+    if (!checkValidity(path, routeSpecific))
+        return false;
+    routeSpecific[path] = handler;
+    return true;
+}
+
+bool HttpServer::checkValidity(const std::string &path, const std::unordered_map<std::string, std::function<int(Request &, Response &)>> &handler) const
+{
+    if (handler.find(path) != handler.end())
+    {
+        Logger::err("Duplicate route");
+        return false;
+    }
+    return true;
 }

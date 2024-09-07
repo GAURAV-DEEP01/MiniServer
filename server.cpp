@@ -2,65 +2,65 @@
 
 int main()
 {
-    HttpServer server;
+    HttpServer app;
 
-    server.routeGet["/"] = [](Request &req, Response &res) -> int
+    app.Get("/", [](Request &, Response &res) -> int
     {
         res.setContentType("text/html");
         res.sendFile("../public/index.html");
-        return 0;
-    };
+        return 0;     
+    });
 
-    server.routeGet["/style.css"] = [](Request &req, Response &res) -> int
-    {
+    app.Get("/style.css", [](Request &, Response &res) -> int
+    {    
         res.setContentType("text/css");
         res.sendFile("../public/style.css");
         return 0;
-    };
+    });
 
-    server.routeGet["/script.js"] = [](Request &req, Response &res) -> int
+    app.Get("/script.js", [](Request &, Response &res) -> int
     {
         res.setContentType("text/javascript");
         res.sendFile("../public/script.js");
         return 0;
-    };
+    });
 
-    server.routeGet["/favicon.ico"] = [](Request &req, Response &res) -> int
+    app.Get("/favicon.ico", [](Request &, Response &res) -> int
     {
         res.setContentType("image/png");
         res.sendFile("../public/favicon.png");
         return 0;
-    };
+    });
 
-    server.routeGet["/status"] = [](Request &req, Response &res) -> int
+    app.Get("/status", [](Request &, Response &res) -> int
     {
         res.setContentType("text/plain");
         res.send("Server is up and running...");
         return 0;
-    };
+    });
 
-    server.routeGet["/github-logo.png"] = [](Request &req, Response &res) -> int
+    app.Get("/github-logo.png", [](Request &, Response &res) -> int
     {
         res.setContentType("image/png");
         res.sendFile("../public/github-logo.png");
         return 0;
-    };
+    });
 
-    server.routeGet["/linkedin-logo.png"] = [](Request &req, Response &res) -> int
+    app.Get("/linkedin-logo.png", [](Request &, Response &res) -> int
     {
         res.setContentType("image/png");
         res.sendFile("../public/linkedin-logo.png");
         return 0;
-    };
+    });
 
     // query parameter handling demo
-    server.routePost["/items?"] = [](Request &req, Response &res) -> int
+    app.Post("/items?", [](Request &req, Response &res) -> int
     {
         res.setContentType("text/html");
         res.send("<h1> id: " + req.getParameter("id") + "</h1>");
         return 0;
-    };
+    });
 
-    server.listen(23000);
+    app.listen(23000);
     return 0;
 }

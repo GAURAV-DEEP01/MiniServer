@@ -65,16 +65,14 @@ You can define routes and handle requests using the following API:
 // Inside the main create a HttpServer instance
 HttpServer app;
 
-/*
-    Define route method (There are routes for other HTTP methods too)
-    Make sure you have the 'index.html' file
-*/
-app.routeGet["/"] = [](Request &req, Response &res) -> int
+
+// Define route method (There are routes for other HTTP methods too)
+app.Get("/",[](Request &req, Response &res) -> int
 {
     res.setContentType("text/html");
-    res.sendFile("index.html");
+    res.send("<h1>Server is running!<h1>");
     return 0;
-};
+});
 
 // Listen on a port (This method invokation should be after all the 'route' definition)
 app.listen(9090);

@@ -61,9 +61,13 @@ int RequestHandler::handleReqRes()
         std::unique_ptr<Request> req = std::make_unique<Request>(requestHeadersMap, requestBodyBuffer);
         std::unique_ptr<Response> res = std::make_unique<Response>(responseBuffer);
 
-        if (service(*req, *res) < 0)
+        try{
+            if (service(*req, *res) < 0)
+                return REQUEST_SERVICE_ERROR;
+        }catch(std::exception &e){
+            Logger::logs("Service Exception: " + std::string(e.what()));
             return REQUEST_SERVICE_ERROR;
-
+        }
         if (!res->_startWriter())
             return REQUEST_PROCESSING_ERROR;
 
