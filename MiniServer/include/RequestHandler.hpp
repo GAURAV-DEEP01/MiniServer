@@ -19,8 +19,6 @@ typedef enum
 class RequestHandler
 {
 private:
-    const int maxRequest = 100;
-    const int maxTimout = 15000;
     int handledRequests = 0;
 
     const SOCKET client_socket_fh;
@@ -49,9 +47,8 @@ public:
 
 private:
     /*
-        recieves request data and responds
-        invokes parseRequestHeaders() parses the header
-        invokes service function passed from HttpServer
+        @brief: this is the main request-response handling loop
+        @note: invokes 'service' function passed from HttpServer
     */
     int handleReqRes();
 

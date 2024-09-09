@@ -10,7 +10,7 @@ private:
     std::string reasonPhrase = "OK";
 
     std::unordered_map<std::string, std::string> headers;
-    std::size_t contentLength = 0;
+    size_t contentLength = 0;
 
     bool isWriteComplete = false;
     std::stringstream responseStream;

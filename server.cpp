@@ -4,7 +4,7 @@ int main()
 {
     HttpServer app;
 
-    app.Get("/", [](Request &, Response &res) -> int
+    app.Get("/", [](Request &, Response &res) -> int 
     {
         res.setContentType("text/html");
         res.sendFile("../public/index.html");

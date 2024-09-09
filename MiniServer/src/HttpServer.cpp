@@ -16,10 +16,8 @@ void HttpServer::listen(short port)
         return SERVER_SAFE_STATE;
     };
     this->port = port;
-    if (this->initTCPconnection() < 0)
+    if (this->initTCPconnection() == SERVER_ERROR)
         Logger::err("Couldn't Initiate TCP connecton");
-    else
-        Logger::status("TCP connection made");
 }
 
 int HttpServer::initTCPconnection()

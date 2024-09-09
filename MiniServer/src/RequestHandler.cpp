@@ -1,4 +1,5 @@
 #include "../include/RequestHandler.hpp"
+#include "../include/HttpServer.hpp"
 #include "../include/Logger.hpp"
 
 RequestHandler::RequestHandler(
@@ -11,9 +12,10 @@ RequestHandler::RequestHandler(
       service(service),
       requestHeadersMap()
 {
+    int timeout = HttpServer::maxTimeout;
     setsockopt(client_socket_fh, SOL_SOCKET, SO_RCVTIMEO,
-               (const char *)&maxTimout,
-               sizeof(maxTimout));
+               (const char *)&timeout,
+               sizeof(timeout));
 
     std::string ipPort = "IP: " + ipString + " and PORT: " + std::to_string(server_addr.sin_port);
 
@@ -48,7 +50,7 @@ RequestHandler::~RequestHandler()
 
 int RequestHandler::handleReqRes()
 {
-    while (maxRequest > handledRequests++)
+    while (HttpServer::maxRequest > handledRequests++)
     {
         const int recevingStatus = startReceiving();
         if (recevingStatus == REQUEST_RECIEVE_FAILED)

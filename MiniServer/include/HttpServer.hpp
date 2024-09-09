@@ -53,8 +53,13 @@ protected:
     std::unordered_map<std::string, std::function<int(Request &, Response &)>> routeSpecific;
 
 public:
+    // Can be use to maintain/limit number of threads for the Server 
     std::atomic<int> currentThreadCount;
     std::atomic<int> clientsServed;
+
+    static const int maxRequest = 100;
+    static const int maxTimeout = 15000;
+
 
     HttpServer();
 
@@ -73,11 +78,10 @@ public:
 
     /*
         @brief: 
-        In the handler method 
-        return 0 if no errors
+        In the "handler" method, return 0 or 'SERVER_SAFE_STATE' if no errors
         return -1 or SERVER_ERROR to close the connection and discard the request
 
-        @return: false if route already exists, true if it does not
+        @returns: false if route already exists, true if it does not
     */
 
     bool Get(const std::string &path, const std::function<int(Request &, Response &)> &handler);

@@ -1,6 +1,6 @@
 # Mini Server
 
-Mini Server is a lightweight C++ HTTP/1.1 server built from scratch it's easy modifiable and has simple routing API.
+Mini Server is a lightweight C++ HTTP/1.1 server built from scratch it's easily modifiable and has simple routing API.
 
 ## Features
 
@@ -82,7 +82,7 @@ Now, checkout `localhost:9090/` on your browser
 
 ## Documentation
 
-- [How Routing Works](/Documentation/Routes.md)
+- [How does Routing and everything Work](/Documentation/Routes.md)
 - [How to use Miniserver as Library](/Documentation/Library.md)
 
 - Documentation for Windows socket API [winsock2.h](https://learn.microsoft.com/en-us/windows/win32/api/winsock2/)
