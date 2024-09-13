@@ -94,19 +94,20 @@ cd Mini-Server
             <p>
                 You can define routes and handle requests using the following API:
             </p>
-            <pre><code>// Inside main, create a HttpServer instance
-HttpServer server;
-
+            <pre><code>// Inside the main create a HttpServer instance
+HttpServer app;
+                
+                
 // Define route method (There are routes for other HTTP methods too)
-// Make sure you have the 'index.html' file
-server.routeGet["/"] = [](Request &req, Response &res) -> int {
-    res.setContentType("text/html");
-    res.sendFile("index.html");
-    return 0;
-};
-
-// Listen on a port (This method invocation should be after all 'route' definitions)
-server.listen(9090);
+app.Get("/",[](Request &req, Response &res) -> int
+{
+res.setContentType("text/html");
+res.send("Server is running!");
+return 0;
+});
+                
+// Listen on a port (This method invokation should be after all the 'route' definition)
+app.listen(9090);
         </code></pre>
             <p>Now, check out <code>localhost:9090/</code> on your browser.</p>
         </section>

@@ -36,6 +36,13 @@ std::unordered_map<std::string, std::string> Request::assignQueryParams()
     }
     return queryParameters;
 }
+
+const std::unordered_map<std::string, std::string> &Request::getHeaderFieldMap() const{ return headerFields; }
+
+const std::unordered_map<std::string, std::string> &Request::getPamameters() const { return queryParams; }
+
+const std::vector<unsigned char> &Request::getBody() const { return requestBodyBuffer; }
+
 std::string Request::getMethod() const
 {
     return getHeaderField("Method");
@@ -63,7 +70,6 @@ std::string Request::getParameter(const std::string &key) const
     return foundParam->second;
 }
 
-const std::vector<unsigned char> &Request::getBody() const { return requestBodyBuffer; }
 
 std::string Request::getHeaderField(const std::string &key) const
 {
@@ -76,6 +82,7 @@ std::string Request::getContentType() const
 {
     return getHeaderField("Content-Type");
 }
+
 std::string Request::getHost() const
 {
     return getHeaderField("Host");

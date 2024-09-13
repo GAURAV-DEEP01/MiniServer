@@ -19,6 +19,55 @@ app.Get("/path", [](Request &req, Response &res) -> int {
 });
 ```
 
+#### Example on where to define routes 
+Include the MiniServer header file
+```cpp
+#include "miniserver.hpp"
+```
+
+In the main, Create an instance of the HttpServer and listen on a port after all your route defintions
+
+```cpp
+int main(){
+    HttpServer app;
+
+    // define all routes here
+
+    app.listen(9090);
+    return 0;
+}
+```
+
+Sample program
+
+```cpp
+#include "miniserver.hpp"
+
+int main()
+{
+    HttpServer app;
+
+    app.Get("/",[](Request &req, Response &res) -> int 
+    {
+        res.setContentType("text/html");
+        res.send("<h1>Hello from Server!<h1>");
+        return 0;
+    });
+
+    app.listen(9090);
+    return 0;
+}
+```
+compile the program and run: [Compile the whole project - view Readme](../README.md) or [Use MiniServer as a library](./Library.md)
+
+And done!, Now your server is listening to the port 9090 go to your browser or any tool and search `localhost:9090`
+
+![Localhost image](images/browser.png)
+
+You can view the connection made by the clients through the logs
+
+![Mini Server Logs](images/logs.png)
+
 The server supports the following methods to define routes:
 
 - `Get(const std::string &path, const std::function<int(Request &, Response &)> &handler)`
@@ -101,6 +150,6 @@ The server supports middleware functions that can be used to modify requests and
 
 ## Conclusion
 
-This document provides an overview of how routing, request handling, and response generation work in the custom HTTP server. The server is designed to be lightweight yet powerful, Handles request with query parameters, and has different HTTP methods. By using this documentation, you should be able to extend the server's functionality or integrate it into your projects.
+This document provides an overview of how routing, request handling, and response generation work in the custom HTTP server. The server is designed to be lightweight yet powerful, Handles request with query parameters, and has different HTTP methods. By using this documentation, you should be able to extend the server's functionality or integrate it into your projects. Note: the server does not compress the body data before sending and there is more feature/requirement to the server yet to implement or not implemented.
 
  

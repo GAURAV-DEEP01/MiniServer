@@ -24,9 +24,14 @@ public:
     std::string getUrl() const;
     std::string getBaseUrl() const;
     std::string getBaseRouteUrl() const;
+    
+    std::string getHeaderField(const std::string &key) const;
+    const std::unordered_map<std::string, std::string> &getHeaderFieldMap() const; 
 
     std::string getParameter(const std::string &key) const;
+    const std::unordered_map<std::string, std::string> &getPamameters() const;
+
     const std::vector<unsigned char> &getBody() const;
-    std::string getHeaderField(const std::string &key) const;
+
     std::string getContentType() const;
 };

@@ -57,6 +57,11 @@ g++ -o exe/WebServer MiniServer/src/HttpServer.cpp MiniServer/src/Logger.cpp Min
 ./WebServer
 ```
 
+Now, checkout `localhost:23000/` on your browser
+
+![MiniServer running on port 23000](./Documentation/images/MiniServerPage.png)
+
+
 ## Simple Example Usage
 
 You can define routes and handle requests using the following API:
@@ -90,7 +95,3 @@ Now, checkout `localhost:9090/` on your browser
 ## Contributing
 
 Contributions are welcome! Please submit a pull request or open an issue to discuss any changes.
-
----
-
-Feel free to customize the content to fit your project's specifics, such as adding more sections or examples.

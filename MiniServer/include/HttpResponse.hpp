@@ -6,7 +6,7 @@ class Response
 {
 private:
     std::string version = "HTTP/1.1";
-    std::string status = "200";
+    int status = 200;
     std::string reasonPhrase = "OK";
 
     std::unordered_map<std::string, std::string> headers;

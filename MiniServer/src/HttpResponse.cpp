@@ -164,7 +164,7 @@ bool Response::addHeaderFieldParam(const std::string &key, const std::string &pa
 
 void Response::setStatus(int statusCode)
 {
-    status = std::to_string(statusCode);
+    status = statusCode;
 }
 
 void Response::setContentType(const std::string &contentType)
