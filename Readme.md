@@ -2,6 +2,18 @@
 
 Mini Server is a lightweight C++ HTTP/1.1 server built from scratch it's easily modifiable and has simple routing API.
 
+```cpp
+HttpServer app;
+
+app.Get("/",[](Request &req, Response &res) -> int {
+    res.setContentType("text/html");
+    res.send("<h1>Server is running!<h1>");
+    return 0;
+});
+
+app.listen(9090);
+```
+
 ## Features
 
 - **Lightweight HTTP Server:** Handles HTTP requests GET, POST, PUT, DELETE, POST and other methods using method SPECIFIC.
