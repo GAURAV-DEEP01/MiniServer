@@ -14,6 +14,12 @@ app.Get("/",[](Request &req, Response &res) -> int {
 app.listen(9090);
 ```
 
+## Request Lifecycle Overview
+
+The following sequence diagram shows the flow of a typical HTTP request handled by MiniServer:
+
+![MiniServer Request Lifecycle](./Documentation/images/MiniServer-SequenceDiagram.png)
+
 ## Features
 
 - **Lightweight HTTP Server:** Handles HTTP requests GET, POST, PUT, DELETE, POST and other methods using method SPECIFIC.
